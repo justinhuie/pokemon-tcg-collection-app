@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pokémon TCG Catalog & Collection Tracker
 
-## Getting Started
+A full-stack web application for browsing, searching, and managing a Pokémon TCG card collection.
 
-First, run the development server:
+Built to mirror real production features such as full-text search, filtering, pagination, and persistent local data.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- 🔍 Full-text card search powered by SQLite FTS5
+- 🧩 Filtering by set, rarity, type, owned status, and wishlisted status
+- 📄 Pagination with “Load more” for large result sets
+- 📦 Collection tracking with quantity support
+- ⭐ Wishlist management
+- 📊 Collection statistics (unique cards, total quantity, top types)
+- 🖼 Card detail pages with images and metadata
+- 📱 Fully responsive, dark-themed UI
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🛠 Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- Frontend: Next.js (App Router), React, TypeScript
+- Backend: Next.js API Routes
+- Database: SQLite (local, offline-first)
+- Search: SQLite Full-Text Search (FTS5)
+- Styling: Minimal dark UI using modern CSS patterns
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🧠 Architecture Highlights
 
-## Deploy on Vercel
+- RESTful API routes with efficient SQL joins for derived data (collection and wishlist badges)
+- Deterministic pagination and stable sorting for consistent results
+- SQLite FTS5 for fast, scalable offline text search
+- Clear separation of concerns between UI components, API logic, and database access
+- State-driven UI with graceful loading and error handling
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## ▶️ Running Locally
+
+npm install  
+npm run dev  
+
+---
+
+## 📁 Project Structure
+
+app/
+├─ api/                 # REST API routes (search, collection, wishlist, image proxy)
+├─ components/          # Reusable UI components (buttons, cards, nav, badges)
+├─ cards/               # Dynamic card detail pages (/cards/[id])
+├─ collection/          # Collection page
+├─ wishlist/            # Wishlist page
+│
+├─ lib/
+│  ├─ db.ts             # SQLite connection, schema, migrations, FTS helpers
+│  └─ cache.ts          # Simple in-memory caching utilities
+│
+├─ scripts/
+│  └─ seedCatalog.ts    # Script to seed the local card catalog database
