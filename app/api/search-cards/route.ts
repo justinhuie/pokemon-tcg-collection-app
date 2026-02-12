@@ -14,7 +14,7 @@ type SearchRow = {
   image_small: string | null;
   image_large: string | null;
   owned_qty: number;
-  wishlisted: number; // 0/1 in SQL
+  wishlisted: number; 
 };
 
 function normalizeFts(q: string): string {
@@ -45,7 +45,6 @@ function likeContains(s: string): string {
   return `%${s}%`;
 }
 
-// Heuristic: many set ids look like "sv3pt5", "base1", etc (letters+digits-ish, short).
 function looksLikeSetId(s: string): boolean {
   const v = s.trim();
   if (!v) return false;
@@ -63,14 +62,14 @@ export async function GET(req: Request) {
   const page = clampInt(Number(searchParams.get("page") ?? "1"), 1, 10_000);
   const offset = (page - 1) * limit;
 
-  const set = (searchParams.get("set") ?? "").trim(); // can be set_id OR name OR "151"
+  const set = (searchParams.get("set") ?? "").trim(); 
   const rarity = (searchParams.get("rarity") ?? "").trim();
   const type = (searchParams.get("type") ?? "").trim();
 
   const owned = (searchParams.get("owned") ?? "") === "1";
   const wishlisted = (searchParams.get("wishlisted") ?? "") === "1";
 
-  const sort = (searchParams.get("sort") ?? "").trim(); // "name" | "set" | "rarity" | "number" | "relevance"
+  const sort = (searchParams.get("sort") ?? "").trim(); 
 
   const db = getDb();
   migrate(db);
@@ -79,14 +78,11 @@ export async function GET(req: Request) {
     const args: Array<string | number> = [];
     const where: string[] = [];
 
-    // ✅ SET filter: accept either set_id OR set_name OR substring (like "151")
     if (set) {
       if (looksLikeSetId(set)) {
-        // if they passed the real id (sv3pt5), match it
         where.push("(c.set_id = ? OR c.set_name = ? OR c.set_name LIKE ?)");
         args.push(set, set, likeContains(set));
       } else {
-        // if they passed "151" or full name, match name equals or contains
         where.push("(c.set_name = ? OR c.set_name LIKE ? OR c.set_id = ?)");
         args.push(set, likeContains(set), set);
       }
@@ -109,7 +105,6 @@ export async function GET(req: Request) {
 
     const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
-    // ORDER BY (stable!)
     let orderBy = "ORDER BY c.name ASC, c.id ASC";
 
     if (q) {

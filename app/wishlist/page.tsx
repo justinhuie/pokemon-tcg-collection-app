@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import RemoveButton from "@/app/components/RemoveButton";
 import TopNav from "@/app/components/TopNav";
@@ -124,7 +123,6 @@ function baseUrl() {
   return "http://localhost:3000";
 }
 
-/* ===== Styles ===== */
 
 const wrap: React.CSSProperties = {
   minHeight: "100vh",

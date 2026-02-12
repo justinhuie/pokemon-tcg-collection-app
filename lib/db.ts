@@ -1,4 +1,3 @@
-// pokemon-tracker/lib/db.ts
 import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
@@ -20,7 +19,6 @@ export type CardRow = {
 };
 
 export function getDb(): DB {
-  // Ensure /data exists
   fs.mkdirSync(path.join(process.cwd(), "data"), { recursive: true });
 
   const db = new Database(DB_PATH);
@@ -83,9 +81,6 @@ export function migrate(db: DB) {
     CREATE INDEX IF NOT EXISTS idx_collection_updated_at ON collection_items(updated_at);
     CREATE INDEX IF NOT EXISTS idx_wishlist_added_at ON wishlist_items(added_at);
   `);
-
-  // Note: we rebuild FTS after seed import. If you later do incremental updates,
-  // we can add triggers to keep cards_fts in sync automatically.
 }
 
 export function rebuildCardsFts(db: DB) {
@@ -111,7 +106,6 @@ function normalizeFtsQuery(q: string) {
 
   if (!cleaned) return "";
 
-  // Turn "charizard vmax" into "charizard* vmax*"
   return cleaned
     .split(" ")
     .filter(Boolean)

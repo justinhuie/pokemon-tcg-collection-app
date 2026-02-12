@@ -14,7 +14,6 @@ export async function POST(
 
   const now = Date.now();
 
-  // If it exists, increment qty. If not, insert qty=1.
   db.prepare(
     `
     INSERT INTO collection_items (card_id, qty, updated_at)

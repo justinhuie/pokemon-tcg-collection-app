@@ -16,7 +16,6 @@ export async function fetchWithTimeout(
   }
 }
 
-// One retry with a small backoff (don’t spam)
 export async function fetchWithRetry(
   url: string,
   init: RequestInit,

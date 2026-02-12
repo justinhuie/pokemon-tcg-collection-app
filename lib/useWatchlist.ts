@@ -17,10 +17,8 @@ function readWatchlist(): string[] {
 }
 
 export function useWatchlist() {
-  // ✅ Load from localStorage during initial state init (avoids setState in effect)
   const [watchlist, setWatchlist] = useState<string[]>(() => readWatchlist());
 
-  // Persist to localStorage
   useEffect(() => {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(watchlist));
@@ -42,7 +40,6 @@ export function useWatchlist() {
     setWatchlist((prev) => prev.filter((c) => c !== id));
   }, []);
 
-  // ✅ Replace entire list at once (used for importing from URL)
   const replaceAll = useCallback((ids: string[]) => {
     const cleaned = ids.map((s) => s.trim()).filter(Boolean);
     setWatchlist(Array.from(new Set(cleaned)));

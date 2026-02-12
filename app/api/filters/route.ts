@@ -20,7 +20,6 @@ export async function GET() {
   const db = getDb();
   migrate(db);
 
-  // 1) Sets
   const setRows = db
     .prepare(
       `
@@ -34,7 +33,6 @@ export async function GET() {
 
   const sets = setRows.map((r) => cleanString(r.set_name));
 
-  // 2) Rarities
   const rarityRows = db
     .prepare(
       `
@@ -48,7 +46,6 @@ export async function GET() {
 
   const rarities = rarityRows.map((r) => cleanString(r.rarity));
 
-  // 3) Types (stored as JSON array in types_json)
   const typeRows = db
     .prepare(
       `
@@ -72,7 +69,6 @@ export async function GET() {
         }
       }
     } catch {
-      // ignore bad rows
     }
   }
 

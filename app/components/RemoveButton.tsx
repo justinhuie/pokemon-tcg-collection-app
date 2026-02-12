@@ -7,7 +7,7 @@ export default function RemoveButton({
   endpoint,
   label = "Remove",
 }: {
-  endpoint: string; // e.g. /api/collection/<id> or /api/wishlist/<id>
+  endpoint: string; 
   label?: string;
 }) {
   const router = useRouter();
@@ -26,7 +26,6 @@ export default function RemoveButton({
         throw new Error(text || `HTTP ${res.status}`);
       }
 
-      // Re-render the server page list
       router.refresh();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Remove failed");

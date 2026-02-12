@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
+// Import libraries
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import TopNav from "@/app/components/TopNav";
@@ -9,6 +9,7 @@ import FiltersBar, {
   FilterOptions,
 } from "@/app/components/FilterBar";
 
+// SearchCard Data Structure
 type SearchCard = {
   id: string;
   name: string;
@@ -24,36 +25,34 @@ type SearchCard = {
   wishlisted: boolean;
 };
 
+// Get Pokemon Card Image
 function proxiedImage(url: string | null): string | null {
   if (!url) return null;
   return `/api/img?url=${encodeURIComponent(url)}`;
 }
 
+// Constants
 const SCAN_PREFILL_KEY = "scan:lastQuery";
 const PAGE_SIZE = 30;
 
+// Home Page
 export default function HomePage() {
   const [q, setQ] = useState("");
   const [cards, setCards] = useState<SearchCard[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // initial / reload search loading
   const [loading, setLoading] = useState(false);
-  // "load more" loading
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // pagination state
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
-  // Dropdown contents
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     sets: [],
     rarities: [],
     types: [],
   });
 
-  // Selected filters
   const [filters, setFilters] = useState<FiltersState>({
     set: "",
     rarity: "",
@@ -63,17 +62,14 @@ export default function HomePage() {
     sort: "name",
   });
 
-  // Prefill from Scan (optional)
   useEffect(() => {
     try {
       const last = localStorage.getItem(SCAN_PREFILL_KEY);
       if (last && last.trim().length >= 2) setQ(last.trim());
     } catch {
-      // ignore
     }
   }, []);
 
-  // Fetch dropdown options
   useEffect(() => {
     (async () => {
       try {
@@ -82,12 +78,10 @@ export default function HomePage() {
         const json = (await res.json()) as { data: FilterOptions };
         if (json?.data) setFilterOptions(json.data);
       } catch {
-        // ignore
       }
     })();
   }, []);
 
-  // Responsive grid columns
   const [cols, setCols] = useState<1 | 2>(2);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 820px)");
@@ -97,7 +91,6 @@ export default function HomePage() {
     return () => mq.removeEventListener("change", apply);
   }, []);
 
-  // ✅ IMPORTANT: sort should count as "active browsing"
   const filtersActive =
     !!filters.set ||
     !!filters.rarity ||
@@ -106,7 +99,6 @@ export default function HomePage() {
     filters.wishlisted ||
     filters.sort !== "name";
 
-  // Build query params for search
   function buildParams(query: string, p: number) {
     const params = new URLSearchParams();
     params.set("limit", String(PAGE_SIZE));
@@ -123,11 +115,9 @@ export default function HomePage() {
     return params;
   }
 
-  // Base search (reset results) whenever q/filters change
   useEffect(() => {
     const query = q.trim();
 
-    // ✅ IMPORTANT: sort counts as "active"
     const hasAnyFilter =
       !!filters.set ||
       !!filters.rarity ||
@@ -136,7 +126,6 @@ export default function HomePage() {
       filters.wishlisted ||
       filters.sort !== "name";
 
-    // No search and no filters: show nothing
     if (query.length < 2 && !hasAnyFilter) {
       setCards([]);
       setError(null);
@@ -186,7 +175,6 @@ export default function HomePage() {
       clearTimeout(t);
       controller.abort();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, filters]);
 
   async function loadMore() {
@@ -214,7 +202,6 @@ export default function HomePage() {
       const json = (await res.json()) as { data: SearchCard[] };
       const more = Array.isArray(json.data) ? json.data : [];
 
-      // Append but dedupe by id (fixes duplicate key warning)
       setCards((prev) => {
         const seen = new Set(prev.map((x) => x.id));
         const merged = [...prev];
@@ -231,7 +218,6 @@ export default function HomePage() {
 
       setPage(nextPage);
 
-      // "has more" based on whether API returned a full page
       setHasMore(more.length === PAGE_SIZE);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to load more.");
@@ -459,8 +445,6 @@ export default function HomePage() {
     </div>
   );
 }
-
-/* ===== Styles ===== */
 
 const wrap: React.CSSProperties = {
   minHeight: "100vh",

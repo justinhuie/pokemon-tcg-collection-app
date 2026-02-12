@@ -87,8 +87,6 @@ export default async function CardPage({
             {card.name}
           </h1>
 
-          {/* ✅ removed the id pill */}
-
           <div style={{ marginLeft: "auto", display: "flex", gap: 10 }}>
             <Link href="/collection" style={pillLink}>
               Collection

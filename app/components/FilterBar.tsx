@@ -127,7 +127,6 @@ export default function FiltersBar({
   );
 }
 
-/* ===== styles ===== */
 
 const wrap: React.CSSProperties = {
   marginTop: 12,
@@ -166,19 +165,16 @@ const select: React.CSSProperties = {
   borderRadius: 14,
   border: "1px solid rgba(255,255,255,0.14)",
 
-  // ✅ requested: black background + white text
   background: "#000",
   color: "#fff",
 
   outline: "none",
   fontSize: 13,
 
-  // Helps keep the native arrow visible on some browsers
   WebkitAppearance: "none",
   MozAppearance: "none",
   appearance: "none",
 
-  // make the list items match (works in many browsers)
   colorScheme: "dark",
 };
 

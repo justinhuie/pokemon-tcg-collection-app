@@ -1,9 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import TopNav from "@/app/components/TopNav";
 
 type CollectionItem = {
-  // some APIs return card_id, some return id — support both
   card_id?: string;
   id?: string;
 
@@ -12,7 +10,6 @@ type CollectionItem = {
   number: string | null;
   rarity: string | null;
 
-  // types should be string[] in your API
   types: string[];
 
   image_small: string | null;
@@ -37,7 +34,6 @@ function safeTypes(item: CollectionItem): string[] {
 export default async function CollectionPage() {
   const res = await fetch(`${baseUrl()}/api/collection`, { cache: "no-store" });
 
-  // If API fails, show a friendly error page
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     return (
@@ -72,7 +68,6 @@ export default async function CollectionPage() {
   const json = (await res.json()) as { data: CollectionItem[] };
   const items: CollectionItem[] = Array.isArray(json?.data) ? json.data : [];
 
-  // ===== stats =====
   const uniqueCards = items.length;
 
   const totalQty = items.reduce((acc, it) => acc + (Number.isFinite(it.qty) ? it.qty : 0), 0);
@@ -83,7 +78,6 @@ export default async function CollectionPage() {
   }
   const setsCount = setNames.size;
 
-  // top types (weighted by qty)
   const typeCounts = new Map<string, number>();
   for (const it of items) {
     const qty = Number.isFinite(it.qty) ? it.qty : 0;
@@ -105,7 +99,6 @@ export default async function CollectionPage() {
     topTypes.length ? `Top types: ${topTypes.join(", ")}` : "Top types: —",
   ];
 
-  // empty state
   const isEmpty = items.length === 0;
 
   return (
@@ -123,7 +116,6 @@ export default async function CollectionPage() {
           <TopNav active="collection" />
         </header>
 
-        {/* Stats header */}
         <div style={{ ...panel, padding: 14, marginTop: 14 }}>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <span style={statPill}>
@@ -260,7 +252,6 @@ function baseUrl() {
   return "http://localhost:3000";
 }
 
-/* ===== Styles ===== */
 
 const wrap: React.CSSProperties = {
   minHeight: "100vh",
