@@ -3,10 +3,15 @@ import { getDb, migrate } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-type UpsertBody = {
-  cardId: string;
-  priority?: number;
-  notes?: string | null;
+type WishlistRow = {
+  id: string; 
+  name: string;
+  set_name: string | null;
+  number: string | null;
+  rarity: string | null;
+  image_small: string | null;
+  priority: number;
+  added_at: number;
 };
 
 export async function GET() {
@@ -14,61 +19,49 @@ export async function GET() {
   try {
     migrate(db);
 
-    const rows = db
-      .prepare(
+    try {
+      const rows = db
+        .prepare(
+          `
+          SELECT
+            c.id AS id,
+            c.name AS name,
+            c.set_name AS set_name,
+            c.number AS number,
+            c.rarity AS rarity,
+            c.image_small AS image_small,
+            COALESCE(wi.priority, 0) AS priority,
+            COALESCE(wi.added_at, 0) AS added_at
+          FROM wishlist_items wi
+          JOIN cards c ON c.id = wi.card_id
+          ORDER BY wi.priority DESC, wi.added_at DESC, c.name ASC;
         `
-        SELECT
-          c.id,
-          c.name,
-          c.set_name,
-          c.number,
-          c.rarity,
-          c.image_small,
-          wi.priority,
-          wi.notes,
-          wi.added_at
-        FROM wishlist_items wi
-        JOIN cards c ON c.id = wi.card_id
-        ORDER BY wi.added_at DESC
-        LIMIT 500;
-      `
-      )
-      .all();
+        )
+        .all() as WishlistRow[];
 
-    return NextResponse.json({ data: rows });
-  } finally {
-    db.close();
-  }
-}
+      return NextResponse.json({ data: rows });
+    } catch {
+      const rows = db
+        .prepare(
+          `
+          SELECT
+            c.id AS id,
+            c.name AS name,
+            c.set_name AS set_name,
+            c.number AS number,
+            c.rarity AS rarity,
+            c.image_small AS image_small,
+            0 AS priority,
+            0 AS added_at
+          FROM wishlist_items wi
+          JOIN cards c ON c.id = wi.card_id
+          ORDER BY c.name ASC;
+        `
+        )
+        .all() as WishlistRow[];
 
-export async function POST(req: Request) {
-  const body = (await req.json()) as UpsertBody;
-
-  if (!body?.cardId || typeof body.cardId !== "string") {
-    return NextResponse.json({ error: "cardId required" }, { status: 400 });
-  }
-
-  const priority =
-    typeof body.priority === "number" ? Math.max(1, Math.min(5, Math.floor(body.priority))) : 2;
-
-  const addedAt = Date.now();
-
-  const db = getDb();
-  try {
-    migrate(db);
-
-    db.prepare(
-      `
-      INSERT INTO wishlist_items (card_id, priority, notes, added_at)
-      VALUES (?, ?, ?, ?)
-      ON CONFLICT(card_id) DO UPDATE SET
-        priority = excluded.priority,
-        notes = excluded.notes,
-        added_at = excluded.added_at;
-    `
-    ).run(body.cardId, priority, body.notes ?? null, addedAt);
-
-    return NextResponse.json({ data: { cardId: body.cardId, priority, addedAt } });
+      return NextResponse.json({ data: rows });
+    }
   } finally {
     db.close();
   }

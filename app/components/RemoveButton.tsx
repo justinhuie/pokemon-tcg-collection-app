@@ -7,28 +7,34 @@ export default function RemoveButton({
   endpoint,
   label = "Remove",
 }: {
-  endpoint: string; 
+  endpoint: string;
   label?: string;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  async function onRemove() {
+  async function onRemove(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+
     if (loading) return;
     setLoading(true);
     setErr(null);
 
     try {
+      console.log("[RemoveButton] DELETE", endpoint);
+
       const res = await fetch(endpoint, { method: "DELETE" });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || `HTTP ${res.status}`);
-      }
+      const text = await res.text();
+
+      console.log("[RemoveButton] status", res.status, "body:", text);
+
+      if (!res.ok) throw new Error(text || `HTTP ${res.status}`);
 
       router.refresh();
-    } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : "Remove failed");
+    } catch (e2: unknown) {
+      setErr(e2 instanceof Error ? e2.message : "Remove failed");
     } finally {
       setLoading(false);
     }
@@ -47,16 +53,6 @@ export default function RemoveButton({
           background: "rgba(255,255,255,0.04)",
           color: "rgba(255,255,255,0.82)",
           cursor: loading ? "not-allowed" : "pointer",
-          transition: "transform 140ms ease, background 140ms ease, border-color 140ms ease",
-        }}
-        onMouseEnter={(e) => {
-          if (loading) return;
-          e.currentTarget.style.background = "rgba(255,120,120,0.10)";
-          e.currentTarget.style.borderColor = "rgba(255,120,120,0.30)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-          e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)";
         }}
         title="Remove this item"
       >

@@ -6,30 +6,27 @@ Built to mirror real production features such as full-text search, filtering, pa
 
 ---
 
-## ✨ Features
+## Features
 
-- 🔍 Full-text card search powered by SQLite FTS5
-- 🧩 Filtering by set, rarity, type, owned status, and wishlisted status
-- 📄 Pagination with “Load more” for large result sets
-- 📦 Collection tracking with quantity support
-- ⭐ Wishlist management
-- 📊 Collection statistics (unique cards, total quantity, top types)
-- 🖼 Card detail pages with images and metadata
-- 📱 Fully responsive, dark-themed UI
+- Full-text card search
+- Filtering by set, rarity, type, owned status, and wishlisted status
+- Collection tracking with quantity support
+- Wishlist management
+- Collection statistics (unique cards, total quantity, top types)
+- Card detail pages with images and metadata
+- Fully responsive, dark-themed UI
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
-- Frontend: Next.js (App Router), React, TypeScript
+- Frontend: Next.js, React, TypeScript
 - Backend: Next.js API Routes
-- Database: SQLite (local, offline-first)
-- Search: SQLite Full-Text Search (FTS5)
-- Styling: Minimal dark UI using modern CSS patterns
+- Database: SQLite 
 
 ---
 
-## 🧠 Architecture Highlights
+## Architecture Highlights
 
 - RESTful API routes with efficient SQL joins for derived data (collection and wishlist badges)
 - Deterministic pagination and stable sorting for consistent results
@@ -39,14 +36,14 @@ Built to mirror real production features such as full-text search, filtering, pa
 
 ---
 
-## ▶️ Running Locally
+## Running Locally
 
 npm install  
 npm run dev  
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 app/
@@ -84,7 +81,7 @@ scripts/
 
 ---
 
-## 📦 Data & Database Setup
+## Data & Database Setup
 
 This project is offline-first and uses a local SQLite database populated from the Pokémon TCG JSON dataset.
 
@@ -118,18 +115,13 @@ After seeding, the app runs fully offline with fast local search.
 
 ---
 
-## 🚀 Future Improvements
+## Future Improvements
 
-- [ ] Delete button for wishlist
+- [✅] Delete button for wishlist
 - [ ] Advanced sorting (price, release date, card number grouping)
 - [ ] Deck builder feature
 - [ ] Export collection to CSV / JSON
 - [ ] Visual analytics (charts for set/type distribution)
+- [ ] Pricing
 
 ---
-
-## 📌 Notes
-
-- The application is offline-first
-- Card images are always loaded via a proxy route (`/api/img`)
-- Raw Pokémon TCG JSON data and the generated SQLite database are excluded by design

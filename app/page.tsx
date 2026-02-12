@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 // Import libraries
@@ -67,6 +68,7 @@ export default function HomePage() {
       const last = localStorage.getItem(SCAN_PREFILL_KEY);
       if (last && last.trim().length >= 2) setQ(last.trim());
     } catch {
+      // ignore
     }
   }, []);
 
@@ -78,6 +80,7 @@ export default function HomePage() {
         const json = (await res.json()) as { data: FilterOptions };
         if (json?.data) setFilterOptions(json.data);
       } catch {
+        // ignore
       }
     })();
   }, []);
@@ -217,7 +220,6 @@ export default function HomePage() {
       });
 
       setPage(nextPage);
-
       setHasMore(more.length === PAGE_SIZE);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to load more.");
@@ -228,223 +230,217 @@ export default function HomePage() {
 
   return (
     <div style={wrap}>
+      {/* background only (never steals clicks) */}
       <div style={glow} aria-hidden="true" />
 
-      <div style={{ maxWidth: 1040, margin: "0 auto", position: "relative" }}>
-        <header style={topbar}>
-          <div style={{ minWidth: 0 }}>
-            <div style={eyebrow}>Card Database</div>
-            <h1 style={h1}>Pokémon TCG Catalog</h1>
-            <div style={sub}>Offline SQLite + FTS search</div>
-          </div>
-
-          <TopNav active="search" />
-        </header>
-
-        <div style={searchCard}>
-          <div style={searchRow}>
-            <span style={searchIcon} aria-hidden="true">
-              ⌕
-            </span>
-
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search cards (e.g., charizard, pikachu, umbreon v)"
-              style={searchInput}
-              spellCheck={false}
-              autoComplete="off"
-            />
-
-            {q ? (
-              <button
-                type="button"
-                onClick={() => setQ("")}
-                style={clearBtn}
-                aria-label="Clear"
-                title="Clear"
-              >
-                ✕
-              </button>
-            ) : null}
-          </div>
-
-          <div style={statusRow}>
-            <div style={{ fontSize: 13 }}>
-              {error ? (
-                <span style={{ color: "rgba(255,160,160,0.95)" }}>
-                  ⚠ {error}
-                </span>
-              ) : loading ? (
-                <span style={{ opacity: 0.75 }}>Searching…</span>
-              ) : q.trim().length >= 2 || filtersActive ? (
-                <span style={{ opacity: 0.75 }}>{cards.length} result(s)</span>
-              ) : (
-                <span style={{ opacity: 0.65 }}>
-                  Type 2+ chars (or use filters) to search.
-                </span>
-              )}
+      {/* ✅ FIX: force all real UI above background */}
+      <div style={content}>
+        <div style={{ maxWidth: 1040, margin: "0 auto", position: "relative" }}>
+          <header style={topbar}>
+            <div style={{ minWidth: 0 }}>
+              <div style={eyebrow}>Card Database</div>
+              <h1 style={h1}>Pokémon TCG Catalog</h1>
+              <div style={sub}>Search For Any Card</div>
             </div>
 
-            <div style={tipText}>
-              Tip: try “V”, “ex”, “GX”, set names, or card numbers.
-            </div>
-          </div>
+            <TopNav active="search" />
+          </header>
 
-          <FiltersBar
-            options={filterOptions}
-            value={filters}
-            onChange={setFilters}
-            onClear={() =>
-              setFilters({
-                set: "",
-                rarity: "",
-                type: "",
-                owned: false,
-                wishlisted: false,
-                sort: "name",
-              })
-            }
-          />
-        </div>
+          <div style={searchCard}>
+            <div style={searchRow}>
+              <span style={searchIcon} aria-hidden="true">
+                ⌕
+              </span>
 
-        <main style={{ marginTop: 14 }}>
-          {cards.length === 0 &&
-          (q.trim().length >= 2 || filtersActive) &&
-          !loading &&
-          !error ? (
-            <div style={empty}>
-              <div style={{ fontWeight: 900 }}>No matches</div>
-              <div style={{ marginTop: 6, opacity: 0.7, fontSize: 13 }}>
-                Try fewer words or clear a filter.
-              </div>
-            </div>
-          ) : null}
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search cards (e.g., charizard, pikachu, umbreon v)"
+                style={searchInput}
+                spellCheck={false}
+                autoComplete="off"
+              />
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                cols === 1 ? "1fr" : "repeat(2, minmax(0, 1fr))",
-              gap: 12,
-            }}
-          >
-            {cards.map((c) => {
-              const thumb = proxiedImage(c.image_small);
-
-              return (
-                <Link key={c.id} href={`/cards/${c.id}`} style={resultCard}>
-                  <div style={thumbWrap}>
-                    {thumb ? (
-                      <img
-                        src={thumb}
-                        alt={c.name}
-                        width={80}
-                        height={112}
-                        style={thumbImg}
-                        loading="lazy"
-                      />
-                    ) : (
-                      <span style={{ opacity: 0.6, fontSize: 12 }}>
-                        No image
-                      </span>
-                    )}
-                  </div>
-
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={nameRow}>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={name} title={c.name}>
-                          {c.name}
-                        </div>
-
-                        <div style={badgesRow}>
-                          {c.owned_qty > 0 ? (
-                            <span style={badgeStrong}>
-                              Owned x{c.owned_qty}
-                            </span>
-                          ) : null}
-                          {c.wishlisted ? (
-                            <span style={badgeGhost}>Wishlisted</span>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      {c.rarity ? <span style={badge}>{c.rarity}</span> : null}
-                    </div>
-
-                    <div style={metaLine}>
-                      <span style={{ opacity: 0.85 }}>
-                        {c.set_name ?? "Unknown set"}
-                      </span>
-                      {c.number ? <span style={{ opacity: 0.5 }}>•</span> : null}
-                      {c.number ? (
-                        <span style={{ opacity: 0.7 }}>#{c.number}</span>
-                      ) : null}
-                    </div>
-
-                    <div style={chips}>
-                      {c.types?.length ? (
-                        <>
-                          {c.types.slice(0, 4).map((t) => (
-                            <span key={t} style={chip}>
-                              {t}
-                            </span>
-                          ))}
-                          {c.types.length > 4 ? (
-                            <span style={{ ...chip, ...chipGhostStyle }}>
-                              +{c.types.length - 4}
-                            </span>
-                          ) : null}
-                        </>
-                      ) : (
-                        <span style={{ ...chip, ...chipGhostStyle }}>
-                          No types
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Load more */}
-          {cards.length > 0 ? (
-            <div
-              style={{
-                marginTop: 14,
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
-              {hasMore ? (
+              {q ? (
                 <button
                   type="button"
-                  onClick={loadMore}
-                  disabled={loadingMore || loading}
-                  style={{
-                    ...loadMoreBtn,
-                    opacity: loadingMore || loading ? 0.65 : 1,
-                    cursor: loadingMore || loading ? "not-allowed" : "pointer",
-                  }}
+                  onClick={() => setQ("")}
+                  style={clearBtn}
+                  aria-label="Clear"
+                  title="Clear"
                 >
-                  {loadingMore ? "Loading…" : "Load more"}
+                  ✕
                 </button>
-              ) : (
-                <div style={{ opacity: 0.6, fontSize: 13, padding: "10px 0" }}>
-                  End of results
-                </div>
-              )}
+              ) : null}
             </div>
-          ) : null}
 
-          <div style={{ height: 26 }} />
-        </main>
+            <div style={statusRow}>
+              <div style={{ fontSize: 13 }}>
+                {error ? (
+                  <span style={{ color: "rgba(255,160,160,0.95)" }}>
+                    ⚠ {error}
+                  </span>
+                ) : loading ? (
+                  <span style={{ opacity: 0.75 }}>Searching…</span>
+                ) : q.trim().length >= 2 || filtersActive ? (
+                  <span style={{ opacity: 0.75 }}>{cards.length} result(s)</span>
+                ) : (
+                  <span style={{ opacity: 0.65 }}>
+                    Type 2+ characters (or use filters) to search.
+                  </span>
+                )}
+              </div>
+
+              <div style={tipText}>
+                Tip: try “V”, “ex”, “GX”, set names, or card numbers.
+              </div>
+            </div>
+
+            <FiltersBar
+              options={filterOptions}
+              value={filters}
+              onChange={setFilters}
+              onClear={() =>
+                setFilters({
+                  set: "",
+                  rarity: "",
+                  type: "",
+                  owned: false,
+                  wishlisted: false,
+                  sort: "name",
+                })
+              }
+            />
+          </div>
+
+          <main style={{ marginTop: 14 }}>
+            {cards.length === 0 &&
+            (q.trim().length >= 2 || filtersActive) &&
+            !loading &&
+            !error ? (
+              <div style={empty}>
+                <div style={{ fontWeight: 900 }}>No matches</div>
+                <div style={{ marginTop: 6, opacity: 0.7, fontSize: 13 }}>
+                  Try fewer words or clear a filter.
+                </div>
+              </div>
+            ) : null}
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  cols === 1 ? "1fr" : "repeat(2, minmax(0, 1fr))",
+                gap: 12,
+              }}
+            >
+              {cards.map((c) => {
+                const thumb = proxiedImage(c.image_small);
+
+                return (
+                  <Link key={c.id} href={`/cards/${c.id}`} style={resultCard}>
+                    <div style={thumbWrap}>
+                      {thumb ? (
+                        <img
+                          src={thumb}
+                          alt={c.name}
+                          width={80}
+                          height={112}
+                          style={thumbImg}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span style={{ opacity: 0.6, fontSize: 12 }}>No image</span>
+                      )}
+                    </div>
+
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={nameRow}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={name} title={c.name}>
+                            {c.name}
+                          </div>
+
+                          <div style={badgesRow}>
+                            {c.owned_qty > 0 ? (
+                              <span style={badgeStrong}>Owned x{c.owned_qty}</span>
+                            ) : null}
+                            {c.wishlisted ? (
+                              <span style={badgeGhost}>Wishlisted</span>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        {c.rarity ? <span style={badge}>{c.rarity}</span> : null}
+                      </div>
+
+                      <div style={metaLine}>
+                        <span style={{ opacity: 0.85 }}>
+                          {c.set_name ?? "Unknown set"}
+                        </span>
+                        {c.number ? <span style={{ opacity: 0.5 }}>•</span> : null}
+                        {c.number ? (
+                          <span style={{ opacity: 0.7 }}>#{c.number}</span>
+                        ) : null}
+                      </div>
+
+                      <div style={chips}>
+                        {c.types?.length ? (
+                          <>
+                            {c.types.slice(0, 4).map((t) => (
+                              <span key={t} style={chip}>
+                                {t}
+                              </span>
+                            ))}
+                            {c.types.length > 4 ? (
+                              <span style={{ ...chip, ...chipGhostStyle }}>
+                                +{c.types.length - 4}
+                              </span>
+                            ) : null}
+                          </>
+                        ) : (
+                          <span style={{ ...chip, ...chipGhostStyle }}>No types</span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Load more */}
+            {cards.length > 0 ? (
+              <div style={{ marginTop: 14, display: "flex", justifyContent: "center" }}>
+                {hasMore ? (
+                  <button
+                    type="button"
+                    onClick={loadMore}
+                    disabled={loadingMore || loading}
+                    style={{
+                      ...loadMoreBtn,
+                      opacity: loadingMore || loading ? 0.65 : 1,
+                      cursor: loadingMore || loading ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {loadingMore ? "Loading…" : "Load more"}
+                  </button>
+                ) : (
+                  <div style={{ opacity: 0.6, fontSize: 13, padding: "10px 0" }}>
+                    End of results
+                  </div>
+                )}
+              </div>
+            ) : null}
+
+            <div style={{ height: 26 }} />
+          </main>
+        </div>
       </div>
     </div>
   );
 }
+
+/* ===== Styles ===== */
 
 const wrap: React.CSSProperties = {
   minHeight: "100vh",
@@ -466,7 +462,13 @@ const glow: React.CSSProperties = {
     "radial-gradient(740px 440px at 55% 85%, rgba(255, 140, 0, 0.10), transparent 60%)",
   filter: "blur(20px)",
   opacity: 0.95,
-  pointerEvents: "none",
+  pointerEvents: "none", // ✅ FIX: never intercept clicks
+  zIndex: 0, // ✅ FIX: behind content
+};
+
+const content: React.CSSProperties = {
+  position: "relative",
+  zIndex: 1, // ✅ FIX: everything clickable
 };
 
 const topbar: React.CSSProperties = {
@@ -537,6 +539,7 @@ const clearBtn: React.CSSProperties = {
   border: "1px solid rgba(255,255,255,0.14)",
   background: "rgba(255,255,255,0.06)",
   color: "rgba(255,255,255,0.80)",
+  cursor: "pointer",
 };
 
 const statusRow: React.CSSProperties = {
