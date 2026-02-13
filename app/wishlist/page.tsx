@@ -29,12 +29,11 @@ export default async function WishlistPage() {
 
       <div style={{ maxWidth: 1040, margin: "0 auto", position: "relative" }}>
         <header style={topbar}>
-          <div style={{ minWidth: 0 }}>
+          <div>
             <div style={eyebrow}>Targets</div>
             <h1 style={h1}>My Wishlist</h1>
             <div style={sub}>{items.length} item(s)</div>
           </div>
-
           <TopNav active="wishlist" />
         </header>
 
@@ -76,25 +75,14 @@ export default async function WishlistPage() {
                       </div>
 
                       <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={nameRow}>
-                          <div style={name} title={c.name}>
-                            {c.name}
-                          </div>
-                          <span style={pillSmall}>P{c.priority}</span>
+                        <div style={name}>
+                          {c.name}
                         </div>
 
                         <div style={meta}>
                           {c.set_name ?? "Unknown set"}
                           {c.number ? ` • #${c.number}` : ""}
                           {c.rarity ? ` • ${c.rarity}` : ""}
-                        </div>
-
-                        <div style={idRow}>
-                          <span style={{ opacity: 0.5, fontSize: 12 }}>id</span>
-                          <span style={mono}>{c.id}</span>
-                          <span style={arrow} aria-hidden="true">
-                            →
-                          </span>
                         </div>
                       </div>
                     </Link>
@@ -123,6 +111,7 @@ function baseUrl() {
   return "http://localhost:3000";
 }
 
+/* ================= STYLES ================= */
 
 const wrap: React.CSSProperties = {
   minHeight: "100vh",
@@ -132,16 +121,14 @@ const wrap: React.CSSProperties = {
   position: "relative",
   overflowX: "hidden",
   fontFamily:
-    'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"',
+    'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial',
 };
 
 const glow: React.CSSProperties = {
   position: "absolute",
   inset: -200,
   background:
-    "radial-gradient(650px 420px at 20% 0%, rgba(124, 92, 255, 0.22), transparent 60%)," +
-    "radial-gradient(650px 420px at 85% 10%, rgba(0, 255, 209, 0.12), transparent 55%)," +
-    "radial-gradient(740px 440px at 55% 85%, rgba(255, 140, 0, 0.10), transparent 60%)",
+    "radial-gradient(650px 420px at 20% 0%, rgba(124,92,255,0.22), transparent 60%)",
   filter: "blur(20px)",
   opacity: 0.95,
   pointerEvents: "none",
@@ -151,21 +138,18 @@ const topbar: React.CSSProperties = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "flex-end",
-  gap: 14,
 };
 
 const eyebrow: React.CSSProperties = {
   fontSize: 12,
   opacity: 0.6,
-  letterSpacing: "0.08em",
   textTransform: "uppercase",
 };
 
 const h1: React.CSSProperties = {
-  margin: "4px 0 0 0",
+  margin: 0,
   fontSize: 30,
   fontWeight: 900,
-  letterSpacing: "-0.02em",
 };
 
 const sub: React.CSSProperties = {
@@ -179,8 +163,6 @@ const panel: React.CSSProperties = {
   borderRadius: 18,
   border: "1px solid rgba(255,255,255,0.12)",
   background: "rgba(0,0,0,0.28)",
-  boxShadow:
-    "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const ctaLink: React.CSSProperties = {
@@ -192,8 +174,6 @@ const ctaLink: React.CSSProperties = {
   border: "1px solid rgba(124,92,255,0.40)",
   background: "rgba(124,92,255,0.16)",
   display: "inline-flex",
-  alignItems: "center",
-  gap: 8,
 };
 
 const list: React.CSSProperties = {
@@ -217,8 +197,6 @@ const rowLink: React.CSSProperties = {
   background: "rgba(0,0,0,0.28)",
   textDecoration: "none",
   color: "inherit",
-  boxShadow:
-    "0 18px 60px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const rowActions: React.CSSProperties = {
@@ -245,57 +223,13 @@ const thumbImg: React.CSSProperties = {
   display: "block",
 };
 
-const nameRow: React.CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: 10,
-  alignItems: "center",
-};
-
 const name: React.CSSProperties = {
   fontWeight: 900,
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
-};
-
-const pillSmall: React.CSSProperties = {
-  fontSize: 12,
-  padding: "6px 10px",
-  borderRadius: 999,
-  border: "1px solid rgba(255,255,255,0.12)",
-  background: "rgba(255,255,255,0.04)",
-  color: "rgba(255,255,255,0.75)",
-  flexShrink: 0,
+  fontSize: 16,
 };
 
 const meta: React.CSSProperties = {
   opacity: 0.7,
   fontSize: 13,
   marginTop: 6,
-};
-
-const idRow: React.CSSProperties = {
-  marginTop: 10,
-  paddingTop: 10,
-  borderTop: "1px solid rgba(255,255,255,0.08)",
-  display: "flex",
-  gap: 10,
-  alignItems: "center",
-};
-
-const mono: React.CSSProperties = {
-  fontFamily:
-    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-  fontSize: 12,
-  opacity: 0.7,
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
-  flex: 1,
-  minWidth: 0,
-};
-
-const arrow: React.CSSProperties = {
-  opacity: 0.65,
 };

@@ -4,6 +4,24 @@ A full-stack web application for browsing, searching, and managing a Pokémon TC
 
 Built to mirror real production features such as full-text search, filtering, pagination, and persistent local data.
 
+
+## Screenshots
+
+### Search Interface
+<img src="./screenshots/pokemon-home-page.png" width="900"/>
+
+### Search Results
+<img src="./screenshots/pokemon-home-page2.png" width="900"/>
+
+### Card Detail Page
+<img src="./screenshots/card-page.png" width="900"/>
+
+### Collection View
+<img src="./screenshots/pokemon-collection.png" width="900"/>
+
+### Wishlist View
+<img src="./screenshots/pokemon-wishlist.png" width="900"/>
+
 ---
 
 ## Features
@@ -17,6 +35,7 @@ Built to mirror real production features such as full-text search, filtering, pa
 - Fully responsive, dark-themed UI
 
 ---
+
 
 ## Tech Stack
 
