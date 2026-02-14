@@ -4,6 +4,19 @@ A full-stack web application for browsing, searching, and managing a Pokémon TC
 
 Built to mirror real production features such as full-text search, filtering, pagination, and persistent local data.
 
+---
+
+## Features
+
+- Full-text card search
+- Filtering by set, rarity, type, owned status, and wishlisted status
+- Collection tracking with quantity support
+- Wishlist management
+- Collection statistics (unique cards, total quantity, top types)
+- Card detail pages with images and metadata
+- Fully responsive, dark-themed UI
+
+---
 
 ## Screenshots
 
@@ -22,20 +35,7 @@ Built to mirror real production features such as full-text search, filtering, pa
 ### Wishlist View
 <img src="./screenshots/pokemon-wishlist.png" width="900"/>
 
----
-
-## Features
-
-- Full-text card search
-- Filtering by set, rarity, type, owned status, and wishlisted status
-- Collection tracking with quantity support
-- Wishlist management
-- Collection statistics (unique cards, total quantity, top types)
-- Card detail pages with images and metadata
-- Fully responsive, dark-themed UI
-
----
-
+--
 
 ## Tech Stack
 
