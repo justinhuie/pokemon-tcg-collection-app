@@ -28,7 +28,7 @@ export default async function CardPage({
     return (
       <div style={wrap}>
         <div style={glow} aria-hidden="true" />
-        <div style={{ maxWidth: 980, margin: "0 auto", position: "relative" }}>
+        <div style={shell}>
           <Link href="/" style={back}>
             ← Back
           </Link>
@@ -62,32 +62,13 @@ export default async function CardPage({
     <div style={wrap}>
       <div style={glow} aria-hidden="true" />
 
-      <div style={{ maxWidth: 980, margin: "0 auto", position: "relative" }}>
-        <Link href="/" style={back}>
-          ← Back to search
-        </Link>
+      <div style={shell}>
+        <div style={topRow}>
+          <Link href="/" style={back}>
+            ← Back to search
+          </Link>
 
-        <div
-          style={{
-            marginTop: 14,
-            display: "flex",
-            gap: 12,
-            flexWrap: "wrap",
-            alignItems: "baseline",
-          }}
-        >
-          <h1
-            style={{
-              margin: 0,
-              fontSize: 28,
-              fontWeight: 850,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            {card.name}
-          </h1>
-
-          <div style={{ marginLeft: "auto", display: "flex", gap: 10 }}>
+          <div style={{ display: "flex", gap: 10 }}>
             <Link href="/collection" style={pillLink}>
               Collection
             </Link>
@@ -97,69 +78,67 @@ export default async function CardPage({
           </div>
         </div>
 
-        <div style={{ opacity: 0.7, marginTop: 8 }}>{setLine}</div>
+        <div style={{ marginTop: 14 }}>
+          <h1 style={title}>{card.name}</h1>
+          <div style={subtitle}>{setLine}</div>
 
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
-          {card.types?.length ? (
-            card.types.map((t) => (
-              <span key={t} style={chip}>
-                {t}
-              </span>
-            ))
-          ) : (
-            <span style={{ ...chip, opacity: 0.6 }}>No types</span>
-          )}
+          <div style={typeRow}>
+            {card.types?.length ? (
+              card.types.map((t) => (
+                <span key={t} style={chip}>
+                  {t}
+                </span>
+              ))
+            ) : (
+              <span style={{ ...chip, opacity: 0.6 }}>No types</span>
+            )}
+          </div>
         </div>
 
-        <div
-          style={{
-            marginTop: 14,
-            display: "grid",
-            gridTemplateColumns: "1fr 360px",
-            gap: 14,
-          }}
-        >
+        <div style={grid}>
           <section style={panel}>
-            <div style={{ padding: 14, display: "grid", placeItems: "center" }}>
+            <div style={imageArea}>
               {large ? (
                 <Image
                   src={large}
                   alt={card.name}
-                  width={420}
-                  height={585}
+                  width={364}
+                  height={504}
                   unoptimized
                   priority
-                  style={{
-                    borderRadius: 16,
-                    border: "1px solid rgba(255,255,255,0.10)",
-                    boxShadow: "0 28px 90px rgba(0,0,0,0.45)",
-                    height: "auto",
-                    maxWidth: "100%",
-                  }}
+                  style={cardImg}
                 />
               ) : (
                 <div style={{ opacity: 0.7, padding: 20 }}>No image available</div>
               )}
             </div>
-
-            <div style={{ padding: 14, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-              <CardActions cardId={id} />
-            </div>
           </section>
 
-          <aside style={panel}>
-            <div style={{ padding: 16 }}>
-              <div style={{ fontWeight: 800, marginBottom: 12 }}>Details</div>
+          {/* RIGHT: details + add buttons */}
+          <aside style={{ display: "grid", gap: 14, alignContent: "start" }}>
+            <div style={panel}>
+              <div style={{ padding: 18 }}>
+                <div style={sectionTitle}>Details</div>
 
-              <Row k="Set" v={card.set_name ?? "—"} />
-              <Row k="Number" v={card.number ?? "—"} />
-              <Row k="Rarity" v={card.rarity ?? "—"} />
-              <Row k="Types" v={card.types?.length ? card.types.join(", ") : "—"} />
+                <Row k="Set" v={card.set_name ?? "—"} />
+                <Row k="Number" v={card.number ?? "—"} />
+                <Row k="Rarity" v={card.rarity ?? "—"} />
+                <Row k="Types" v={card.types?.length ? card.types.join(", ") : "—"} />
+              </div>
+            </div>
+
+            <div style={panel}>
+              <div style={{ padding: 18 }}>
+                <div style={sectionTitle}>Actions</div>
+
+                {/* CardActions should only render Add buttons now */}
+                <CardActions cardId={id} />
+              </div>
             </div>
           </aside>
         </div>
 
-        <div style={{ height: 24 }} />
+        <div style={{ height: 60 }} />
       </div>
     </div>
   );
@@ -167,31 +146,9 @@ export default async function CardPage({
 
 function Row({ k, v }: { k: string; v: string }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        gap: 12,
-        padding: "10px 12px",
-        borderRadius: 14,
-        border: "1px solid rgba(255,255,255,0.10)",
-        background: "rgba(255,255,255,0.03)",
-        marginTop: 10,
-      }}
-    >
+    <div style={row}>
       <div style={{ fontSize: 12, opacity: 0.6 }}>{k}</div>
-      <div
-        style={{
-          fontSize: 13,
-          opacity: 0.88,
-          textAlign: "right",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {v}
-      </div>
+      <div style={rowVal}>{v}</div>
     </div>
   );
 }
@@ -201,11 +158,13 @@ function baseUrl() {
   return "http://localhost:3000";
 }
 
+/* ===== Styles ===== */
+
 const wrap: React.CSSProperties = {
   minHeight: "100vh",
   background: "#070a10",
   color: "rgba(255,255,255,0.92)",
-  padding: 24,
+  padding: "clamp(18px, 2.5vw, 36px)",
   position: "relative",
   overflowX: "hidden",
   fontFamily:
@@ -224,6 +183,19 @@ const glow: React.CSSProperties = {
   pointerEvents: "none",
 };
 
+const shell: React.CSSProperties = {
+  width: "min(1440px, 100%)",
+  margin: "0 auto",
+  position: "relative",
+};
+
+const topRow: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 12,
+};
+
 const back: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
@@ -238,12 +210,63 @@ const back: React.CSSProperties = {
   backdropFilter: "blur(10px)",
 };
 
+const title: React.CSSProperties = {
+  margin: 0,
+  fontSize: 34,
+  fontWeight: 900,
+  letterSpacing: "-0.02em",
+};
+
+const subtitle: React.CSSProperties = {
+  opacity: 0.7,
+  marginTop: 8,
+  fontSize: 14,
+};
+
+const typeRow: React.CSSProperties = {
+  display: "flex",
+  gap: 8,
+  flexWrap: "wrap",
+  marginTop: 12,
+};
+
 const panel: React.CSSProperties = {
   border: "1px solid rgba(255,255,255,0.12)",
   background: "rgba(0,0,0,0.28)",
   borderRadius: 18,
-  boxShadow: "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow:
+    "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
   overflow: "hidden",
+};
+
+const grid: React.CSSProperties = {
+  marginTop: 16,
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr) 420px",
+  gap: 16,
+  alignItems: "start",
+};
+
+const mediaHack = `
+@media (max-width: 980px) {
+  .__grid { grid-template-columns: 1fr; }
+}
+`;
+
+const imageArea: React.CSSProperties = {
+  padding: 12,
+  display: "grid",
+  placeItems: "center",
+};
+
+const cardImg: React.CSSProperties = {
+  borderRadius: 18,
+  border: "1px solid rgba(255,255,255,0.10)",
+  boxShadow: "0 24px 60px rgba(0,0,0,0.45)",
+  height: "auto",
+  width: "100%",
+  maxWidth: "460px",
+  display: "block"
 };
 
 const pillLink: React.CSSProperties = {
@@ -263,4 +286,31 @@ const chip: React.CSSProperties = {
   border: "1px solid rgba(255,255,255,0.12)",
   background: "rgba(0,0,0,0.25)",
   color: "rgba(255,255,255,0.72)",
+};
+
+const sectionTitle: React.CSSProperties = {
+  fontWeight: 850,
+  marginBottom: 12,
+  fontSize: 14,
+  opacity: 0.92,
+};
+
+const row: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 12,
+  padding: "12px 14px",
+  borderRadius: 14,
+  border: "1px solid rgba(255,255,255,0.10)",
+  background: "rgba(255,255,255,0.03)",
+  marginTop: 10,
+};
+
+const rowVal: React.CSSProperties = {
+  fontSize: 13,
+  opacity: 0.88,
+  textAlign: "right",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
 };

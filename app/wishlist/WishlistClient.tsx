@@ -3,16 +3,15 @@
 import { useRouter } from "next/navigation";
 import RemoveButton from "@/app/components/RemoveButton";
 
-type CollectionItem = {
-  card_id?: string;
-  id?: string;
+type WishlistItem = {
+  id: string;
   name: string;
   set_name: string | null;
   number: string | null;
   rarity: string | null;
-  types: string[];
   image_small: string | null;
-  qty: number;
+  priority: number;
+  added_at: number;
 };
 
 function proxiedImage(url: string | null): string | null {
@@ -20,23 +19,7 @@ function proxiedImage(url: string | null): string | null {
   return `/api/img?url=${encodeURIComponent(url)}`;
 }
 
-function getStableId(item: CollectionItem): string {
-  return (
-    item.card_id ??
-    item.id ??
-    `${item.name}:${item.set_name ?? ""}:${item.number ?? ""}`
-  );
-}
-
-function safeTypes(item: CollectionItem): string[] {
-  return Array.isArray(item.types) ? item.types : [];
-}
-
-export default function CollectionListClient({
-  items,
-}: {
-  items: CollectionItem[];
-}) {
+export default function WishlistListClient({ items }: { items: WishlistItem[] }) {
   const router = useRouter();
 
   return (
@@ -48,29 +31,31 @@ export default function CollectionListClient({
       }}
     >
       {items.map((it) => {
-        const stableId = getStableId(it);
-
-        const cardId: string = it.card_id ?? it.id ?? "";
-
+        const cardId = it.id;
         const thumb = proxiedImage(it.image_small);
-        const line = [it.set_name ?? "Unknown set", it.number ? `#${it.number}` : null]
+
+        const line = [
+          it.set_name ?? "Unknown set",
+          it.number ? `#${it.number}` : null,
+        ]
           .filter(Boolean)
           .join(" • ");
 
-        const deleteEndpoint = cardId
-          ? `/api/collection/${encodeURIComponent(cardId)}`
-          : "";
+        const deleteEndpoint = `/api/wishlist/${encodeURIComponent(cardId)}`;
 
         return (
           <div
-            key={stableId}
+            key={cardId}
             style={resultCardOuter}
-            onClick={() => {
-              if (cardId) router.push(`/cards/${encodeURIComponent(cardId)}`);
-            }}
+            onClick={() => router.push(`/cards/${encodeURIComponent(cardId)}`)}
             role="button"
             tabIndex={0}
-            aria-disabled={!cardId}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                router.push(`/cards/${encodeURIComponent(cardId)}`);
+              }
+            }}
           >
             <div style={resultCardLink}>
               <div style={thumbWrap}>
@@ -94,6 +79,7 @@ export default function CollectionListClient({
                     <div style={name} title={it.name}>
                       {it.name}
                     </div>
+
                     <div
                       style={{
                         marginTop: 6,
@@ -102,8 +88,11 @@ export default function CollectionListClient({
                         flexWrap: "wrap",
                       }}
                     >
-                      <span style={badgeStrong}>Owned x{it.qty}</span>
-                      {it.rarity ? <span style={badgeGhost}>{it.rarity}</span> : null}
+                      {it.rarity ? (
+                        <span style={badgeGhost}>{it.rarity}</span>
+                      ) : (
+                        <span style={badgeGhost}>Wishlist</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -111,22 +100,9 @@ export default function CollectionListClient({
                 <div style={metaLine}>{line}</div>
 
                 <div style={chips}>
-                  {safeTypes(it).length ? (
-                    safeTypes(it)
-                      .slice(0, 4)
-                      .map((t) => (
-                        <span key={`${stableId}:${t}`} style={chip}>
-                          {t}
-                        </span>
-                      ))
-                  ) : (
-                    <span style={{ ...chip, ...chipGhostStyle }}>No types</span>
-                  )}
-                  {safeTypes(it).length > 4 ? (
-                    <span style={{ ...chip, ...chipGhostStyle }}>
-                      +{safeTypes(it).length - 4}
-                    </span>
-                  ) : null}
+                  <span style={{ ...chip, ...chipGhostStyle }}>
+                    Priority {it.priority}
+                  </span>
                 </div>
               </div>
             </div>
@@ -138,11 +114,7 @@ export default function CollectionListClient({
                 e.stopPropagation();
               }}
             >
-              {cardId ? (
-                <RemoveButton endpoint={deleteEndpoint} label="Delete" />
-              ) : (
-                <span style={{ fontSize: 12, opacity: 0.6 }}>Missing card id</span>
-              )}
+              <RemoveButton endpoint={deleteEndpoint} label="Remove" />
             </div>
           </div>
         );
@@ -151,13 +123,16 @@ export default function CollectionListClient({
   );
 }
 
+
 const resultCardOuter: React.CSSProperties = {
   borderRadius: 18,
   border: "1px solid rgba(255,255,255,0.12)",
   background: "rgba(0,0,0,0.28)",
-  boxShadow: "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow:
+    "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
   overflow: "hidden",
   cursor: "pointer",
+  minWidth: 0,
 };
 
 const resultCardLink: React.CSSProperties = {
@@ -165,6 +140,7 @@ const resultCardLink: React.CSSProperties = {
   gap: 14,
   padding: 14,
   color: "inherit",
+  minWidth: 0,
 };
 
 const actionsRow: React.CSSProperties = {
@@ -179,7 +155,8 @@ const thumbWrap: React.CSSProperties = {
   borderRadius: 14,
   overflow: "hidden",
   border: "1px solid rgba(255,255,255,0.10)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
+  background:
+    "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
   flexShrink: 0,
   display: "grid",
   placeItems: "center",
@@ -205,15 +182,6 @@ const name: React.CSSProperties = {
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
-};
-
-const badgeStrong: React.CSSProperties = {
-  fontSize: 11,
-  padding: "6px 9px",
-  borderRadius: 999,
-  border: "1px solid rgba(0,255,209,0.22)",
-  background: "rgba(0,255,209,0.08)",
-  color: "rgba(220,255,250,0.92)",
 };
 
 const badgeGhost: React.CSSProperties = {

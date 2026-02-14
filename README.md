@@ -14,7 +14,7 @@ Built to mirror real production features such as full-text search, filtering, pa
 <img src="./screenshots/pokemon-home-page2.png" width="900"/>
 
 ### Card Detail Page
-<img src="./screenshots/card-page.png" width="900"/>
+<img src="./screenshots/pokemon-card-page.png" width="900"/>
 
 ### Collection View
 <img src="./screenshots/pokemon-collection.png" width="900"/>

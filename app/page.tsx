@@ -5,10 +5,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import TopNav from "@/app/components/TopNav";
-import FiltersBar, {
-  FiltersState,
-  FilterOptions,
-} from "@/app/components/FilterBar";
+import FiltersBar, { FiltersState, FilterOptions } from "@/app/components/FilterBar";
 
 // SearchCard Data Structure
 type SearchCard = {
@@ -83,15 +80,6 @@ export default function HomePage() {
         // ignore
       }
     })();
-  }, []);
-
-  const [cols, setCols] = useState<1 | 2>(2);
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 820px)");
-    const apply = () => setCols(mq.matches ? 1 : 2);
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
   }, []);
 
   const filtersActive =
@@ -233,9 +221,10 @@ export default function HomePage() {
       {/* background only (never steals clicks) */}
       <div style={glow} aria-hidden="true" />
 
-      {/* ✅ FIX: force all real UI above background */}
+      {/* content above background */}
       <div style={content}>
-        <div style={{ maxWidth: 1040, margin: "0 auto", position: "relative" }}>
+        {/* ✅ wider, responsive container */}
+        <div style={shell}>
           <header style={topbar}>
             <div style={{ minWidth: 0 }}>
               <div style={eyebrow}>Card Database</div>
@@ -277,9 +266,7 @@ export default function HomePage() {
             <div style={statusRow}>
               <div style={{ fontSize: 13 }}>
                 {error ? (
-                  <span style={{ color: "rgba(255,160,160,0.95)" }}>
-                    ⚠ {error}
-                  </span>
+                  <span style={{ color: "rgba(255,160,160,0.95)" }}>⚠ {error}</span>
                 ) : loading ? (
                   <span style={{ opacity: 0.75 }}>Searching…</span>
                 ) : q.trim().length >= 2 || filtersActive ? (
@@ -291,9 +278,7 @@ export default function HomePage() {
                 )}
               </div>
 
-              <div style={tipText}>
-                Tip: try “V”, “ex”, “GX”, set names, or card numbers.
-              </div>
+              <div style={tipText}>Tip: try “V”, “ex”, “GX”, set names, or card numbers.</div>
             </div>
 
             <FiltersBar
@@ -314,10 +299,7 @@ export default function HomePage() {
           </div>
 
           <main style={{ marginTop: 14 }}>
-            {cards.length === 0 &&
-            (q.trim().length >= 2 || filtersActive) &&
-            !loading &&
-            !error ? (
+            {cards.length === 0 && (q.trim().length >= 2 || filtersActive) && !loading && !error ? (
               <div style={empty}>
                 <div style={{ fontWeight: 900 }}>No matches</div>
                 <div style={{ marginTop: 6, opacity: 0.7, fontSize: 13 }}>
@@ -326,14 +308,8 @@ export default function HomePage() {
               </div>
             ) : null}
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  cols === 1 ? "1fr" : "repeat(2, minmax(0, 1fr))",
-                gap: 12,
-              }}
-            >
+            {/* ✅ auto-fill grid: expands to 3–4 columns on big screens */}
+            <div style={resultsGrid}>
               {cards.map((c) => {
                 const thumb = proxiedImage(c.image_small);
 
@@ -365,9 +341,7 @@ export default function HomePage() {
                             {c.owned_qty > 0 ? (
                               <span style={badgeStrong}>Owned x{c.owned_qty}</span>
                             ) : null}
-                            {c.wishlisted ? (
-                              <span style={badgeGhost}>Wishlisted</span>
-                            ) : null}
+                            {c.wishlisted ? <span style={badgeGhost}>Wishlisted</span> : null}
                           </div>
                         </div>
 
@@ -375,13 +349,9 @@ export default function HomePage() {
                       </div>
 
                       <div style={metaLine}>
-                        <span style={{ opacity: 0.85 }}>
-                          {c.set_name ?? "Unknown set"}
-                        </span>
+                        <span style={{ opacity: 0.85 }}>{c.set_name ?? "Unknown set"}</span>
                         {c.number ? <span style={{ opacity: 0.5 }}>•</span> : null}
-                        {c.number ? (
-                          <span style={{ opacity: 0.7 }}>#{c.number}</span>
-                        ) : null}
+                        {c.number ? <span style={{ opacity: 0.7 }}>#{c.number}</span> : null}
                       </div>
 
                       <div style={chips}>
@@ -425,9 +395,7 @@ export default function HomePage() {
                     {loadingMore ? "Loading…" : "Load more"}
                   </button>
                 ) : (
-                  <div style={{ opacity: 0.6, fontSize: 13, padding: "10px 0" }}>
-                    End of results
-                  </div>
+                  <div style={{ opacity: 0.6, fontSize: 13, padding: "10px 0" }}>End of results</div>
                 )}
               </div>
             ) : null}
@@ -446,7 +414,7 @@ const wrap: React.CSSProperties = {
   minHeight: "100vh",
   background: "#070a10",
   color: "rgba(255,255,255,0.92)",
-  padding: 24,
+  padding: "clamp(18px, 2.5vw, 36px)", // ✅ responsive padding
   position: "relative",
   overflowX: "hidden",
   fontFamily:
@@ -462,13 +430,20 @@ const glow: React.CSSProperties = {
     "radial-gradient(740px 440px at 55% 85%, rgba(255, 140, 0, 0.10), transparent 60%)",
   filter: "blur(20px)",
   opacity: 0.95,
-  pointerEvents: "none", // ✅ FIX: never intercept clicks
-  zIndex: 0, // ✅ FIX: behind content
+  pointerEvents: "none",
+  zIndex: 0,
 };
 
 const content: React.CSSProperties = {
   position: "relative",
-  zIndex: 1, // ✅ FIX: everything clickable
+  zIndex: 1,
+};
+
+/** ✅ NEW: wider container (fills screen but still looks clean) */
+const shell: React.CSSProperties = {
+  width: "min(1440px, 100%)",
+  margin: "0 auto",
+  position: "relative",
 };
 
 const topbar: React.CSSProperties = {
@@ -504,8 +479,7 @@ const searchCard: React.CSSProperties = {
   borderRadius: 18,
   border: "1px solid rgba(255,255,255,0.12)",
   background: "rgba(0,0,0,0.28)",
-  boxShadow:
-    "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const searchRow: React.CSSProperties = {
@@ -564,6 +538,13 @@ const empty: React.CSSProperties = {
   marginBottom: 12,
 };
 
+/** ✅ NEW: results grid that fills space */
+const resultsGrid: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))",
+  gap: 12,
+};
+
 const resultCard: React.CSSProperties = {
   display: "flex",
   gap: 14,
@@ -573,8 +554,7 @@ const resultCard: React.CSSProperties = {
   background: "rgba(0,0,0,0.28)",
   textDecoration: "none",
   color: "inherit",
-  boxShadow:
-    "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const thumbWrap: React.CSSProperties = {
@@ -583,8 +563,7 @@ const thumbWrap: React.CSSProperties = {
   borderRadius: 14,
   overflow: "hidden",
   border: "1px solid rgba(255,255,255,0.10)",
-  background:
-    "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
+  background: "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
   flexShrink: 0,
   display: "grid",
   placeItems: "center",

@@ -18,13 +18,13 @@ type CollectionItem = {
 export default async function CollectionPage() {
   const res = await fetch(`${baseUrl()}/api/collection`, { cache: "no-store" });
 
-  // Match your existing "nice error card" pattern if you want — keeping minimal here
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     return (
       <div style={wrap}>
         <div style={glow} aria-hidden="true" />
-        <div style={{ maxWidth: 1040, margin: "0 auto", position: "relative" }}>
+
+        <div style={shell}>
           <header style={topbar}>
             <div style={{ minWidth: 0 }}>
               <div style={eyebrow}>Tracker</div>
@@ -34,10 +34,12 @@ export default async function CollectionPage() {
             <TopNav active="collection" />
           </header>
 
-          <main style={{ marginTop: 14 }}>
+          <main style={{ marginTop: 16 }}>
             <div style={panel}>
-              <div style={{ fontWeight: 900 }}>Couldn’t load collection</div>
-              <div style={{ opacity: 0.7, marginTop: 6, fontSize: 13 }}>
+              <div style={{ fontWeight: 900, fontSize: 16 }}>
+                Couldn’t load collection
+              </div>
+              <div style={{ opacity: 0.7, marginTop: 6, fontSize: 14 }}>
                 {text || "API request failed."}
               </div>
               <div style={{ marginTop: 12 }}>
@@ -59,7 +61,7 @@ export default async function CollectionPage() {
     <div style={wrap}>
       <div style={glow} aria-hidden="true" />
 
-      <div style={{ maxWidth: 1040, margin: "0 auto", position: "relative" }}>
+      <div style={shell}>
         <header style={topbar}>
           <div style={{ minWidth: 0 }}>
             <div style={eyebrow}>Tracker</div>
@@ -70,11 +72,13 @@ export default async function CollectionPage() {
           <TopNav active="collection" />
         </header>
 
-        <main style={{ marginTop: 14 }}>
+        <main style={{ marginTop: 16 }}>
           {items.length === 0 ? (
             <div style={panel}>
-              <div style={{ fontWeight: 900 }}>No collection items</div>
-              <div style={{ opacity: 0.7, marginTop: 6, fontSize: 13 }}>
+              <div style={{ fontWeight: 900, fontSize: 16 }}>
+                No collection items
+              </div>
+              <div style={{ opacity: 0.7, marginTop: 6, fontSize: 14 }}>
                 Add cards you own to track quantity and progress.
               </div>
               <div style={{ marginTop: 12 }}>
@@ -99,12 +103,11 @@ function baseUrl() {
   return "http://localhost:3000";
 }
 
-
 const wrap: React.CSSProperties = {
   minHeight: "100vh",
   background: "#070a10",
   color: "rgba(255,255,255,0.92)",
-  padding: 24,
+  padding: "clamp(18px, 2.5vw, 36px)", 
   position: "relative",
   overflowX: "hidden",
   fontFamily:
@@ -123,6 +126,12 @@ const glow: React.CSSProperties = {
   pointerEvents: "none",
 };
 
+const shell: React.CSSProperties = {
+  width: "min(1440px, 100%)", 
+  margin: "0 auto",
+  position: "relative",
+};
+
 const topbar: React.CSSProperties = {
   display: "flex",
   justifyContent: "space-between",
@@ -139,19 +148,19 @@ const eyebrow: React.CSSProperties = {
 
 const h1: React.CSSProperties = {
   margin: "4px 0 0 0",
-  fontSize: 30,
+  fontSize: 34,
   fontWeight: 900,
   letterSpacing: "-0.02em",
 };
 
 const sub: React.CSSProperties = {
   marginTop: 8,
-  fontSize: 13,
+  fontSize: 14, 
   opacity: 0.68,
 };
 
 const panel: React.CSSProperties = {
-  padding: 16,
+  padding: 18,
   borderRadius: 18,
   border: "1px solid rgba(255,255,255,0.12)",
   background: "rgba(0,0,0,0.28)",
@@ -162,7 +171,7 @@ const panel: React.CSSProperties = {
 const ctaLink: React.CSSProperties = {
   textDecoration: "none",
   color: "rgba(255,255,255,0.85)",
-  fontSize: 13,
+  fontSize: 14,
   padding: "10px 12px",
   borderRadius: 14,
   border: "1px solid rgba(124,92,255,0.40)",
