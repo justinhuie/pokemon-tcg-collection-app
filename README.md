@@ -8,19 +8,19 @@ Built to mirror real production features such as full-text search, filtering, pa
 ## Screenshots
 
 ### Search Interface
-<img src="./screenshots/pokemon-home-page.png" width="300" height = "500"/>
+<img src="./screenshots/pokemon-home-page.png" width="900"/>
 
 ### Search Results
-<img src="./screenshots/pokemon-home-page2.png" width="300" height = "500"/>
+<img src="./screenshots/pokemon-home-page2.png" width="900"/>
 
 ### Card Detail Page
-<img src="./screenshots/pokemon-card-page.png" width="300" height = "500"/>
+<img src="./screenshots/pokemon-card-page.png" width="900"/>
 
 ### Collection View
-<img src="./screenshots/pokemon-collection.png" width="300" height = "500"/>
+<img src="./screenshots/pokemon-collection.png" width="900"/>
 
 ### Wishlist View
-<img src="./screenshots/pokemon-wishlist.png" width="300" height = "500"/>
+<img src="./screenshots/pokemon-wishlist.png" width="900"/>
 
 ---
 
