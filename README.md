@@ -2,7 +2,7 @@
 
 A full-stack web application for browsing, searching, and managing a Pokémon TCG card collection.
 
-Built to mirror real production features such as full-text search, filtering, pagination, and persistent local data.
+Built with features such as full-text search, filtering, and persistent local data.
 
 ---
 
@@ -47,11 +47,9 @@ Built to mirror real production features such as full-text search, filtering, pa
 
 ## Architecture Highlights
 
-- RESTful API routes with efficient SQL joins for derived data (collection and wishlist badges)
-- Deterministic pagination and stable sorting for consistent results
+- RESTful API routes with SQL joins for derived data (collection and wishlist badges)
 - SQLite FTS5 for fast, scalable offline text search
-- Clear separation of concerns between UI components, API logic, and database access
-- State-driven UI with graceful loading and error handling
+- State-driven UI with loading and error handling
 
 ---
 
