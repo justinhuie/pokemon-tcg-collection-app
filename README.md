@@ -64,6 +64,7 @@ npm run dev
 
 ## Project Structure
 
+```txt
 app/
   api/
     search-cards/     # Full-text search endpoint (FTS5)
@@ -83,6 +84,8 @@ lib/
 
 scripts/
   seedCatalog.ts      # Seeds SQLite from JSON data
+
+```
 
 ---
 
