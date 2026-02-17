@@ -1,20 +1,19 @@
 # Pokémon TCG Catalog & Collection Tracker
 
-A full-stack web application for browsing, searching, and managing a Pokémon TCG card collection.
+This project started as a way to browse Pokémon TCG cards without relying on slow external APIs or an internet connection. It grew into a local-first collection tracker where you can search cards, mark what you own, and keep a wishlist.
 
-Built with features such as full-text search, filtering, and persistent local data.
+Everything runs on a local SQLite database seeded from the Pokémon TCG JSON dataset, so once it’s set up, the app works fully offline.
 
 ---
 
 ## Features
 
-- Full-text card search
-- Filtering by set, rarity, type, owned status, and wishlisted status
-- Collection tracking with quantity support
-- Wishlist management
-- Collection statistics (unique cards, total quantity, top types)
-- Card detail pages with images and metadata
-- Fully responsive, dark-themed UI
+- Search cards by name using full-text search
+- Filter results by set, rarity, type, owned status, or wishlist status
+- Track your collection with quantities
+- Maintain a wishlist seperate from owned cards
+- View individual card pages with images and metadata
+- See basic collection stats (total cards, unique cards, common types)
 
 ---
 
@@ -40,16 +39,19 @@ Built with features such as full-text search, filtering, and persistent local da
 ## Tech Stack
 
 - Frontend: Next.js, React, TypeScript
+Used for routing, sever components, and type safety
 - Backend: Next.js API Routes
+Handles search, filters, collection updates, and wishlist actions
 - Database: SQLite 
+Keeps the project portable
 
 ---
 
-## Architecture Highlights
+## Implementation Notes
 
-- RESTful API routes with SQL joins for derived data (collection and wishlist badges)
-- SQLite FTS5 for fast, scalable offline text search
-- State-driven UI with loading and error handling
+- Card search is powered by SQLite FTS5 which makes text search fast
+- Images are loaded through a small proxy route to avoid CORS issues from the data source
+- The UI is state-driven
 
 ---
 
@@ -62,47 +64,33 @@ npm run dev
 
 ## Project Structure
 
-```text
 app/
-├─ api/
-│  ├─ search-cards/          # SQLite FTS search endpoint
-│  ├─ filters/               # Filter dropdown data (sets, rarities, types)
-│  ├─ collection/            # Collection CRUD API
-│  ├─ wishlist/              # Wishlist CRUD API
-│  └─ img/                   # Image proxy (avoids CORS issues)
-│
-├─ components/
-│  ├─ TopNav.tsx             # Navigation bar
-│  ├─ FilterBar.tsx          # Search filters UI
-│  ├─ CardActions.tsx        # Add/remove collection & wishlist
-│
-├─ cards/
-│  └─ [id]/
-│     └─ page.tsx            # Card detail page
-│
-├─ collection/
-│  └─ page.tsx               # Collection page
-│
-├─ wishlist/
-│  └─ page.tsx               # Wishlist page
-│
-├─ page.tsx                  # Home search page
-│
+  api/
+    search-cards/     # Full-text search endpoint (FTS5)
+    collection/       # Collection CRUD
+    wishlist/         # Wishlist CRUD
+    filters/          # Filter metadata
+    img/              # Image proxy
+
+  page.tsx            # Home / search
+  cards/[id]/page.tsx # Card detail page
+  collection/page.tsx
+  wishlist/page.tsx
+
 lib/
-├─ db.ts                     # SQLite setup, schema, migrations, FTS helpers
-├─ cache.ts                  # Simple in-memory caching utilities
-│
+  db.ts               # SQLite setup, schema, FTS helpers
+  cache.ts            # Simple in-memory caching
+
 scripts/
-└─ seedCatalog.ts            # Seeds SQLite from Pokémon TCG JSON data
-```
+  seedCatalog.ts      # Seeds SQLite from JSON data
 
 ---
 
 ## Data & Database Setup
 
-This project is offline-first and uses a local SQLite database populated from the Pokémon TCG JSON dataset.
+The app is offline-first and uses a local SQLite database generated from the Pokémon TCG JSON dataset.
 
-The raw card data and generated database are intentionally excluded from the repository.
+Neither the raw data nor the generated database is committed to the repo.
 
 ### Data Source
 
@@ -134,11 +122,9 @@ After seeding, the app runs fully offline with fast local search.
 
 ## Future Improvements
 
-- [✅] Delete button for wishlist
-- [ ] Advanced sorting (price, release date, card number grouping)
-- [ ] Deck builder feature
-- [ ] Export collection to CSV / JSON
-- [ ] Visual analytics (charts for set/type distribution)
-- [ ] Pricing
-
+- Sorting by release data or card number
+- Deck building support
+- Exporting collection date (CSV / JSON)
+- Visual breakdowns of sets and types
+- Pricing data
 ---
