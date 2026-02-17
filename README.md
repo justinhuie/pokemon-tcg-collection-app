@@ -11,7 +11,7 @@ Everything runs on a local SQLite database seeded from the Pokémon TCG JSON dat
 - Search cards by name using full-text search
 - Filter results by set, rarity, type, owned status, or wishlist status
 - Track your collection with quantities
-- Maintain a wishlist seperate from owned cards
+- Maintain a wishlist separate from owned cards
 - View individual card pages with images and metadata
 - See basic collection stats (total cards, unique cards, common types)
 
@@ -38,12 +38,9 @@ Everything runs on a local SQLite database seeded from the Pokémon TCG JSON dat
 
 ## Tech Stack
 
-- Frontend: Next.js, React, TypeScript
-Used for routing, sever components, and type safety
-- Backend: Next.js API Routes
-Handles search, filters, collection updates, and wishlist actions
-- Database: SQLite 
-Keeps the project portable
+- Frontend: Next.js, React, TypeScript - Used for routing, server components, and type safety
+- Backend: Next.js API Routes - Handles search, filters, collection updates, and wishlist actions
+- Database: SQLite - Keeps the project portable
 
 ---
 
@@ -125,9 +122,9 @@ After seeding, the app runs fully offline with fast local search.
 
 ## Future Improvements
 
-- Sorting by release data or card number
+- Sorting by release date or card number
 - Deck building support
-- Exporting collection date (CSV / JSON)
+- Exporting collection data (CSV / JSON)
 - Visual breakdowns of sets and types
 - Pricing data
 ---
