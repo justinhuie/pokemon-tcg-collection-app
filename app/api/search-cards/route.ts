@@ -1,48 +1,130 @@
+// app/api/search-cards/route.ts
 import { NextResponse } from "next/server";
-import { getDb, migrate } from "@/lib/db";
+import fs from "node:fs";
+import path from "node:path";
 
 export const runtime = "nodejs";
 
-type SearchRow = {
+const PAGE_SIZE_DEFAULT = 30;
+
+type SearchCard = {
   id: string;
   name: string;
   set_id: string | null;
   set_name: string | null;
   number: string | null;
   rarity: string | null;
-  types_json: string | null;
+  types: string[];
   image_small: string | null;
   image_large: string | null;
   owned_qty: number;
-  wishlisted: number; 
+  wishlisted: boolean;
 };
 
-function normalizeFts(q: string): string {
-  const cleaned = q
-    .trim()
-    .replace(/["']/g, " ")
-    .replace(/[^\p{L}\p{N}\s-]/gu, " ")
-    .replace(/\s+/g, " ");
+type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
 
-  if (!cleaned) return "";
-  return cleaned
-    .split(" ")
-    .filter(Boolean)
-    .map((t) => `${t}*`)
-    .join(" ");
-}
+type CardRow = {
+  id: string;
+  name: string;
+  set_id: string | null;
+  set_name: string | null;
+  number: string | null;
+  rarity: string | null;
+  types: string[];
+  image_small: string | null;
+  image_large: string | null;
+};
 
 function clampInt(n: number, min: number, max: number): number {
   if (!Number.isFinite(n)) return min;
   return Math.max(min, Math.min(max, Math.floor(n)));
 }
 
-function typesJsonHas(type: string): string {
-  return `%\"${type}\"%`;
+function cleanString(s: string): string {
+  return s.trim();
 }
 
-function likeContains(s: string): string {
-  return `%${s}%`;
+function asString(v: JsonValue): string | null {
+  return typeof v === "string" ? v : null;
+}
+
+function asStringArray(v: JsonValue): string[] {
+  if (!Array.isArray(v)) return [];
+  const out: string[] = [];
+  for (const item of v) {
+    if (typeof item === "string" && item.trim()) out.push(item.trim());
+  }
+  return out;
+}
+
+function toCardRow(v: JsonValue): CardRow | null {
+  if (v === null || typeof v !== "object" || Array.isArray(v)) return null;
+  const obj = v as { [key: string]: JsonValue };
+
+  const id = asString(obj.id);
+  const name = asString(obj.name);
+
+  if (!id || !name) return null;
+
+  const set_id = asString(obj.set_id) ?? asString(obj.setId) ?? null;
+  const set_name = asString(obj.set_name) ?? asString(obj.setName) ?? null;
+
+  const number = asString(obj.number) ?? null;
+  const rarity = asString(obj.rarity) ?? null;
+
+  const types = asStringArray(obj.types);
+
+  const image_small =
+    asString(obj.image_small) ??
+    (obj.images && typeof obj.images === "object" && !Array.isArray(obj.images)
+      ? asString((obj.images as { [key: string]: JsonValue }).small)
+      : null) ??
+    null;
+
+  const image_large =
+    asString(obj.image_large) ??
+    (obj.images && typeof obj.images === "object" && !Array.isArray(obj.images)
+      ? asString((obj.images as { [key: string]: JsonValue }).large)
+      : null) ??
+    null;
+
+  return {
+    id,
+    name,
+    set_id,
+    set_name,
+    number,
+    rarity,
+    types,
+    image_small,
+    image_large,
+  };
+}
+
+function parseJsonArray(raw: string): JsonValue[] | null {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as JsonValue[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+function includesInsensitive(haystack: string, needle: string): boolean {
+  return haystack.toLowerCase().includes(needle.toLowerCase());
+}
+
+function normalizeQuery(q: string): string {
+  return q
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
 }
 
 function looksLikeSetId(s: string): boolean {
@@ -52,158 +134,172 @@ function looksLikeSetId(s: string): boolean {
   return /^[a-z0-9]+$/i.test(v);
 }
 
+function compareNullable(a: string | null, b: string | null): number {
+  const aa = a ?? "";
+  const bb = b ?? "";
+  return aa.localeCompare(bb);
+}
+
+function compareCardNumber(a: string | null, b: string | null): number {
+  // Try numeric compare first, fall back to lexicographic
+  const na = a ? Number(a) : NaN;
+  const nb = b ? Number(b) : NaN;
+  const aNumOk = Number.isFinite(na);
+  const bNumOk = Number.isFinite(nb);
+  if (aNumOk && bNumOk) return na - nb;
+  return compareNullable(a, b);
+}
+
+function passesFilters(card: CardRow, opts: {
+  q: string;
+  set: string;
+  rarity: string;
+  type: string;
+}): boolean {
+  const { q, set, rarity, type } = opts;
+
+  if (set) {
+    if (looksLikeSetId(set)) {
+      const match =
+        (card.set_id && card.set_id.toLowerCase() === set.toLowerCase()) ||
+        (card.set_name && card.set_name.toLowerCase() === set.toLowerCase()) ||
+        (card.set_name && includesInsensitive(card.set_name, set));
+      if (!match) return false;
+    } else {
+      const match =
+        (card.set_name && card.set_name.toLowerCase() === set.toLowerCase()) ||
+        (card.set_name && includesInsensitive(card.set_name, set)) ||
+        (card.set_id && card.set_id.toLowerCase() === set.toLowerCase());
+      if (!match) return false;
+    }
+  }
+
+  if (rarity) {
+    if (!card.rarity || card.rarity !== rarity) return false;
+  }
+
+  if (type) {
+    if (!card.types.some((t) => t === type)) return false;
+  }
+
+  if (q) {
+    // simple contains search on name + set + number + rarity
+    const parts = q.split(" ").filter(Boolean);
+    const name = card.name;
+    const setName = card.set_name ?? "";
+    const number = card.number ?? "";
+    const rar = card.rarity ?? "";
+
+    for (const p of parts) {
+      const ok =
+        includesInsensitive(name, p) ||
+        includesInsensitive(setName, p) ||
+        includesInsensitive(number, p) ||
+        includesInsensitive(rar, p);
+      if (!ok) return false;
+    }
+  }
+
+  return true;
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
   const qRaw = (searchParams.get("q") ?? "").trim();
-  const q = qRaw.length >= 2 ? qRaw : "";
+  const q = qRaw.length >= 2 ? normalizeQuery(qRaw) : "";
 
-  const limit = clampInt(Number(searchParams.get("limit") ?? "30"), 1, 60);
+  const limit = clampInt(Number(searchParams.get("limit") ?? String(PAGE_SIZE_DEFAULT)), 1, 60);
   const page = clampInt(Number(searchParams.get("page") ?? "1"), 1, 10_000);
   const offset = (page - 1) * limit;
 
-  const set = (searchParams.get("set") ?? "").trim(); 
-  const rarity = (searchParams.get("rarity") ?? "").trim();
-  const type = (searchParams.get("type") ?? "").trim();
+  const set = cleanString(searchParams.get("set") ?? "");
+  const rarity = cleanString(searchParams.get("rarity") ?? "");
+  const type = cleanString(searchParams.get("type") ?? "");
 
-  const owned = (searchParams.get("owned") ?? "") === "1";
-  const wishlisted = (searchParams.get("wishlisted") ?? "") === "1";
+  // These were DB-backed; keep for compatibility but ignore in JSON mode
+  // const owned = (searchParams.get("owned") ?? "") === "1";
+  // const wishlisted = (searchParams.get("wishlisted") ?? "") === "1";
 
-  const sort = (searchParams.get("sort") ?? "").trim(); 
-
-  const db = getDb();
-  migrate(db);
+  const sort = cleanString(searchParams.get("sort") ?? "");
 
   try {
-    const args: Array<string | number> = [];
-    const where: string[] = [];
+    const cardsDir = path.join(process.cwd(), "data", "pokemon-tcg-data", "cards");
+    const files = fs.readdirSync(cardsDir);
 
-    if (set) {
-      if (looksLikeSetId(set)) {
-        where.push("(c.set_id = ? OR c.set_name = ? OR c.set_name LIKE ?)");
-        args.push(set, set, likeContains(set));
-      } else {
-        where.push("(c.set_name = ? OR c.set_name LIKE ? OR c.set_id = ?)");
-        args.push(set, likeContains(set), set);
+    const matches: CardRow[] = [];
+
+    for (const file of files) {
+      if (!file.endsWith(".json")) continue;
+
+      const fullPath = path.join(cardsDir, file);
+      const raw = fs.readFileSync(fullPath, "utf8");
+      const arr = parseJsonArray(raw);
+      if (!arr) continue;
+
+      for (const item of arr) {
+        const card = toCardRow(item);
+        if (!card) continue;
+
+        if (passesFilters(card, { q, set, rarity, type })) {
+          matches.push(card);
+        }
       }
     }
 
-    if (rarity) {
-      where.push("c.rarity = ?");
-      args.push(rarity);
-    }
-    if (type) {
-      where.push("c.types_json LIKE ?");
-      args.push(typesJsonHas(type));
-    }
-    if (owned) {
-      where.push("COALESCE(ci.qty, 0) > 0");
-    }
-    if (wishlisted) {
-      where.push("wi.card_id IS NOT NULL");
-    }
-
-    const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
-
-    let orderBy = "ORDER BY c.name ASC, c.id ASC";
-
-    if (q) {
-      if (sort === "" || sort === "relevance") {
-        orderBy = "ORDER BY bm25(f) ASC, c.name ASC, c.id ASC";
-      } else if (sort === "name") {
-        orderBy = "ORDER BY c.name ASC, c.id ASC";
-      } else if (sort === "set") {
-        orderBy = "ORDER BY c.set_name ASC, c.name ASC, c.id ASC";
-      } else if (sort === "rarity") {
-        orderBy = "ORDER BY c.rarity ASC, c.name ASC, c.id ASC";
-      } else if (sort === "number") {
-        orderBy = "ORDER BY c.number ASC, c.name ASC, c.id ASC";
-      }
+    // Sorting
+    if (sort === "set") {
+      matches.sort((a, b) => {
+        const c1 = compareNullable(a.set_name, b.set_name);
+        if (c1 !== 0) return c1;
+        const c2 = a.name.localeCompare(b.name);
+        if (c2 !== 0) return c2;
+        return a.id.localeCompare(b.id);
+      });
+    } else if (sort === "rarity") {
+      matches.sort((a, b) => {
+        const c1 = compareNullable(a.rarity, b.rarity);
+        if (c1 !== 0) return c1;
+        const c2 = a.name.localeCompare(b.name);
+        if (c2 !== 0) return c2;
+        return a.id.localeCompare(b.id);
+      });
+    } else if (sort === "number") {
+      matches.sort((a, b) => {
+        const c1 = compareCardNumber(a.number, b.number);
+        if (c1 !== 0) return c1;
+        const c2 = a.name.localeCompare(b.name);
+        if (c2 !== 0) return c2;
+        return a.id.localeCompare(b.id);
+      });
     } else {
-      if (sort === "set") {
-        orderBy = "ORDER BY c.set_name ASC, c.name ASC, c.id ASC";
-      } else if (sort === "rarity") {
-        orderBy = "ORDER BY c.rarity ASC, c.name ASC, c.id ASC";
-      } else if (sort === "number") {
-        orderBy = "ORDER BY c.number ASC, c.name ASC, c.id ASC";
-      } else {
-        orderBy = "ORDER BY c.name ASC, c.id ASC";
-      }
+      // default: name
+      matches.sort((a, b) => {
+        const c1 = a.name.localeCompare(b.name);
+        if (c1 !== 0) return c1;
+        return a.id.localeCompare(b.id);
+      });
     }
 
-    let rows: SearchRow[] = [];
+    const pageItems = matches.slice(offset, offset + limit);
 
-    if (q) {
-      const fts = normalizeFts(q);
-      if (!fts) return NextResponse.json({ data: [] });
-
-      const stmt = db.prepare(`
-        SELECT
-          c.id,
-          c.name,
-          c.set_id,
-          c.set_name,
-          c.number,
-          c.rarity,
-          c.types_json,
-          c.image_small,
-          c.image_large,
-          COALESCE(ci.qty, 0) AS owned_qty,
-          CASE WHEN wi.card_id IS NULL THEN 0 ELSE 1 END AS wishlisted
-        FROM cards_fts f
-        JOIN cards c ON c.id = f.id
-        LEFT JOIN collection_items ci ON ci.card_id = c.id
-        LEFT JOIN wishlist_items wi ON wi.card_id = c.id
-        ${whereSql ? `${whereSql} AND cards_fts MATCH ?` : "WHERE cards_fts MATCH ?"}
-        ${orderBy}
-        LIMIT ? OFFSET ?;
-      `);
-
-      rows = stmt.all(...args, fts, limit, offset) as SearchRow[];
-    } else {
-      const stmt = db.prepare(`
-        SELECT
-          c.id,
-          c.name,
-          c.set_id,
-          c.set_name,
-          c.number,
-          c.rarity,
-          c.types_json,
-          c.image_small,
-          c.image_large,
-          COALESCE(ci.qty, 0) AS owned_qty,
-          CASE WHEN wi.card_id IS NULL THEN 0 ELSE 1 END AS wishlisted
-        FROM cards c
-        LEFT JOIN collection_items ci ON ci.card_id = c.id
-        LEFT JOIN wishlist_items wi ON wi.card_id = c.id
-        ${whereSql}
-        ${orderBy}
-        LIMIT ? OFFSET ?;
-      `);
-
-      rows = stmt.all(...args, limit, offset) as SearchRow[];
-    }
-
-    const data = rows.map((r) => ({
+    const data: SearchCard[] = pageItems.map((r) => ({
       id: r.id,
       name: r.name,
       set_id: r.set_id,
       set_name: r.set_name,
       number: r.number,
       rarity: r.rarity,
-      types: r.types_json ? (JSON.parse(r.types_json) as string[]) : [],
+      types: r.types,
       image_small: r.image_small,
       image_large: r.image_large,
-      owned_qty: Number(r.owned_qty ?? 0),
-      wishlisted: Boolean(r.wishlisted),
+      owned_qty: 0,
+      wishlisted: false,
     }));
 
     return NextResponse.json({ data });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Search failed";
     return new NextResponse(msg, { status: 500 });
-  } finally {
-    db.close();
   }
 }
