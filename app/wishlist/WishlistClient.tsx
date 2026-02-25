@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import RemoveButton from "@/app/components/RemoveButton";
+import { getWishlistIds, removeFromWishlist, subscribeToStorageChange } from "@/lib/tcgStorage";
 
 type WishlistItem = {
   id: string;
@@ -22,6 +23,12 @@ function proxiedImage(url: string | null): string | null {
 export default function WishlistListClient({ items }: { items: WishlistItem[] }) {
   const router = useRouter();
 
+  const [tick, setTick] = useState(0);
+  useEffect(() => subscribeToStorageChange(() => setTick((x) => x + 1)), []);
+
+  const wishSet = useMemo(() => new Set(getWishlistIds()), [tick]);
+  const visible = useMemo(() => items.filter((it) => wishSet.has(it.id)), [items, wishSet]);
+
   return (
     <div
       style={{
@@ -30,18 +37,13 @@ export default function WishlistListClient({ items }: { items: WishlistItem[] })
         gap: 12,
       }}
     >
-      {items.map((it) => {
+      {visible.map((it) => {
         const cardId = it.id;
         const thumb = proxiedImage(it.image_small);
 
-        const line = [
-          it.set_name ?? "Unknown set",
-          it.number ? `#${it.number}` : null,
-        ]
+        const line = [it.set_name ?? "Unknown set", it.number ? `#${it.number}` : null]
           .filter(Boolean)
           .join(" • ");
-
-        const deleteEndpoint = `/api/wishlist/${encodeURIComponent(cardId)}`;
 
         return (
           <div
@@ -100,9 +102,7 @@ export default function WishlistListClient({ items }: { items: WishlistItem[] })
                 <div style={metaLine}>{line}</div>
 
                 <div style={chips}>
-                  <span style={{ ...chip, ...chipGhostStyle }}>
-                    Priority {it.priority}
-                  </span>
+                  <span style={{ ...chip, ...chipGhostStyle }}>Priority {it.priority}</span>
                 </div>
               </div>
             </div>
@@ -114,7 +114,13 @@ export default function WishlistListClient({ items }: { items: WishlistItem[] })
                 e.stopPropagation();
               }}
             >
-              <RemoveButton endpoint={deleteEndpoint} label="Remove" />
+              <button
+                type="button"
+                onClick={() => removeFromWishlist(cardId)}
+                style={removeBtn}
+              >
+                Remove
+              </button>
             </div>
           </div>
         );
@@ -123,13 +129,11 @@ export default function WishlistListClient({ items }: { items: WishlistItem[] })
   );
 }
 
-
 const resultCardOuter: React.CSSProperties = {
   borderRadius: 18,
   border: "1px solid rgba(255,255,255,0.12)",
   background: "rgba(0,0,0,0.28)",
-  boxShadow:
-    "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
   overflow: "hidden",
   cursor: "pointer",
   minWidth: 0,
@@ -149,14 +153,22 @@ const actionsRow: React.CSSProperties = {
   justifyContent: "flex-end",
 };
 
+const removeBtn: React.CSSProperties = {
+  padding: "8px 10px",
+  borderRadius: 12,
+  border: "1px solid rgba(255,255,255,0.14)",
+  background: "rgba(0,0,0,0.22)",
+  color: "rgba(255,255,255,0.85)",
+  cursor: "pointer",
+};
+
 const thumbWrap: React.CSSProperties = {
   width: 80,
   height: 112,
   borderRadius: 14,
   overflow: "hidden",
   border: "1px solid rgba(255,255,255,0.10)",
-  background:
-    "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
+  background: "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
   flexShrink: 0,
   display: "grid",
   placeItems: "center",

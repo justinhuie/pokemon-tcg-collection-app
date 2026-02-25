@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import RemoveButton from "@/app/components/RemoveButton";
+import { setOwnedQty, getCollectionMap, subscribeToStorageChange } from "@/lib/tcgStorage";
 
 type CollectionItem = {
   card_id?: string;
@@ -21,23 +22,32 @@ function proxiedImage(url: string | null): string | null {
 }
 
 function getStableId(item: CollectionItem): string {
-  return (
-    item.card_id ??
-    item.id ??
-    `${item.name}:${item.set_name ?? ""}:${item.number ?? ""}`
-  );
+  return item.card_id ?? item.id ?? `${item.name}:${item.set_name ?? ""}:${item.number ?? ""}`;
 }
 
 function safeTypes(item: CollectionItem): string[] {
   return Array.isArray(item.types) ? item.types : [];
 }
 
-export default function CollectionListClient({
-  items,
-}: {
-  items: CollectionItem[];
-}) {
+export default function CollectionListClient({ items }: { items: CollectionItem[] }) {
   const router = useRouter();
+
+  // re-render when localStorage changes
+  const [tick, setTick] = useState(0);
+  useEffect(() => subscribeToStorageChange(() => setTick((x) => x + 1)), []);
+
+  // use the latest collection map to decide what to show + current qty
+  const map = useMemo(() => getCollectionMap(), [tick]);
+
+  const visible = useMemo(() => {
+    return items
+      .map((it) => {
+        const cardId = it.card_id ?? it.id ?? "";
+        const qty = cardId ? (map[cardId] ?? 0) : it.qty;
+        return { ...it, qty, _cardId: cardId };
+      })
+      .filter((it) => it._cardId && it.qty > 0);
+  }, [items, map]);
 
   return (
     <div
@@ -47,30 +57,22 @@ export default function CollectionListClient({
         gap: 12,
       }}
     >
-      {items.map((it) => {
+      {visible.map((it) => {
         const stableId = getStableId(it);
-
-        const cardId: string = it.card_id ?? it.id ?? "";
+        const cardId = it._cardId;
 
         const thumb = proxiedImage(it.image_small);
         const line = [it.set_name ?? "Unknown set", it.number ? `#${it.number}` : null]
           .filter(Boolean)
           .join(" • ");
 
-        const deleteEndpoint = cardId
-          ? `/api/collection/${encodeURIComponent(cardId)}`
-          : "";
-
         return (
           <div
-            key={stableId}
+            key={`${stableId}:${tick}`}
             style={resultCardOuter}
-            onClick={() => {
-              if (cardId) router.push(`/cards/${encodeURIComponent(cardId)}`);
-            }}
+            onClick={() => router.push(`/cards/${encodeURIComponent(cardId)}`)}
             role="button"
             tabIndex={0}
-            aria-disabled={!cardId}
           >
             <div style={resultCardLink}>
               <div style={thumbWrap}>
@@ -94,6 +96,7 @@ export default function CollectionListClient({
                     <div style={name} title={it.name}>
                       {it.name}
                     </div>
+
                     <div
                       style={{
                         marginTop: 6,
@@ -138,11 +141,13 @@ export default function CollectionListClient({
                 e.stopPropagation();
               }}
             >
-              {cardId ? (
-                <RemoveButton endpoint={deleteEndpoint} label="Delete" />
-              ) : (
-                <span style={{ fontSize: 12, opacity: 0.6 }}>Missing card id</span>
-              )}
+              <button
+                type="button"
+                onClick={() => setOwnedQty(cardId, 0)}
+                style={deleteBtn}
+              >
+                Delete
+              </button>
             </div>
           </div>
         );
@@ -171,6 +176,15 @@ const actionsRow: React.CSSProperties = {
   padding: "0 14px 14px 14px",
   display: "flex",
   justifyContent: "flex-end",
+};
+
+const deleteBtn: React.CSSProperties = {
+  padding: "8px 10px",
+  borderRadius: 12,
+  border: "1px solid rgba(255,255,255,0.14)",
+  background: "rgba(0,0,0,0.22)",
+  color: "rgba(255,255,255,0.85)",
+  cursor: "pointer",
 };
 
 const thumbWrap: React.CSSProperties = {

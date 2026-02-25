@@ -1,151 +1,119 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  getOwnedQty,
+  incrementOwned,
+  isWishlisted,
+  toggleWishlist,
+  subscribeToStorageChange,
+  setOwnedQty,
+} from "@/lib/tcgStorage";
 
 export default function CardActions({ cardId }: { cardId: string }) {
-  const [addingCollection, setAddingCollection] = useState(false);
-  const [addingWishlist, setAddingWishlist] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
 
-  async function addToCollection() {
-    if (addingCollection) return;
-    setAddingCollection(true);
-    setMsg(null);
+  useEffect(() => {
+    return subscribeToStorageChange(() => setTick((x) => x + 1));
+  }, []);
 
-    try {
-      const res = await fetch(`/api/collection/${encodeURIComponent(cardId)}`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || `HTTP ${res.status}`);
-      }
-
-      setMsg("Added to collection.");
-    } catch (e: unknown) {
-      setMsg(e instanceof Error ? e.message : "Failed to add to collection.");
-    } finally {
-      setAddingCollection(false);
-    }
-  }
-
-  async function addToWishlist() {
-    if (addingWishlist) return;
-    setAddingWishlist(true);
-    setMsg(null);
-
-    try {
-      const res = await fetch(`/api/wishlist/${encodeURIComponent(cardId)}`, {
-        method: "POST",
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || `HTTP ${res.status}`);
-      }
-
-      setMsg("Added to wishlist.");
-    } catch (e: unknown) {
-      setMsg(e instanceof Error ? e.message : "Failed to add to wishlist.");
-    } finally {
-      setAddingWishlist(false);
-    }
-  }
+  const owned = useMemo(() => getOwnedQty(cardId), [cardId, tick]);
+  const wish = useMemo(() => isWishlisted(cardId), [cardId, tick]);
 
   return (
     <div style={{ display: "grid", gap: 10 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <button
           type="button"
-          onClick={addToCollection}
-          disabled={addingCollection}
+          onClick={() => toggleWishlist(cardId)}
           style={{
-            padding: "10px 12px",
-            borderRadius: 14,
-            border: "1px solid rgba(255,255,255,0.14)",
-            background: addingCollection
-              ? "rgba(255,255,255,0.06)"
-              : "rgba(0,0,0,0.22)",
-            color: "rgba(255,255,255,0.88)",
-            cursor: addingCollection ? "not-allowed" : "pointer",
-            backdropFilter: "blur(10px)",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
+            ...btn,
+            borderColor: wish ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.14)",
+            background: wish ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.18)",
           }}
-          title="Adds this card to your local collection"
         >
-          {addingCollection ? "Adding…" : "Add to Collection"}
+          {wish ? "★ Wishlisted" : "☆ Add to Wishlist"}
         </button>
 
-        <button
-          type="button"
-          onClick={addToWishlist}
-          disabled={addingWishlist}
-          style={{
-            padding: "10px 12px",
-            borderRadius: 14,
-            border: "1px solid rgba(255,255,255,0.14)",
-            background: addingWishlist
-              ? "rgba(255,255,255,0.06)"
-              : "rgba(0,0,0,0.22)",
-            color: "rgba(255,255,255,0.88)",
-            cursor: addingWishlist ? "not-allowed" : "pointer",
-            backdropFilter: "blur(10px)",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
-          }}
-          title="Adds this card to your wishlist"
-        >
-          {addingWishlist ? "Adding…" : "Add to Wishlist"}
+        <button type="button" onClick={() => incrementOwned(cardId, 1)} style={btn}>
+          + Add to Collection
         </button>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-        <Link
-          href="/collection"
-          style={{
-            textDecoration: "none",
-            color: "rgba(255,255,255,0.72)",
-            fontSize: 13,
-            padding: "8px 10px",
-            borderRadius: 999,
-            border: "1px solid rgba(255,255,255,0.12)",
-            background: "rgba(0,0,0,0.18)",
-          }}
-        >
-          View Collection →
-        </Link>
+      <div style={panelRow}>
+        <div style={{ opacity: 0.7, fontSize: 13 }}>Owned</div>
 
-        <Link
-          href="/wishlist"
-          style={{
-            textDecoration: "none",
-            color: "rgba(255,255,255,0.72)",
-            fontSize: 13,
-            padding: "8px 10px",
-            borderRadius: 999,
-            border: "1px solid rgba(255,255,255,0.12)",
-            background: "rgba(0,0,0,0.18)",
-          }}
-        >
-          View Wishlist →
-        </Link>
-      </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <button
+            type="button"
+            onClick={() => incrementOwned(cardId, -1)}
+            disabled={owned <= 0}
+            style={{ ...miniBtn, opacity: owned <= 0 ? 0.5 : 1 }}
+          >
+            −
+          </button>
 
-      {msg ? (
-        <div
-          style={{
-            fontSize: 13,
-            color: "rgba(255,255,255,0.75)",
-            padding: "10px 12px",
-            borderRadius: 14,
-            border: "1px solid rgba(255,255,255,0.10)",
-            background: "rgba(255,255,255,0.04)",
-          }}
-        >
-          {msg}
+          <div style={{ minWidth: 40, textAlign: "center", fontWeight: 800 }}>
+            {owned}
+          </div>
+
+          <button type="button" onClick={() => incrementOwned(cardId, 1)} style={miniBtn}>
+            +
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setOwnedQty(cardId, 0)}
+            disabled={owned <= 0}
+            style={{ ...ghostBtn, opacity: owned <= 0 ? 0.5 : 1 }}
+          >
+            Clear
+          </button>
         </div>
-      ) : null}
+      </div>
+
+      <div style={{ fontSize: 12, opacity: 0.55 }}>
+        Saved locally in your browser (localStorage).
+      </div>
     </div>
   );
 }
+
+const btn: React.CSSProperties = {
+  padding: "10px 12px",
+  borderRadius: 14,
+  border: "1px solid rgba(255,255,255,0.14)",
+  background: "rgba(0,0,0,0.18)",
+  color: "rgba(255,255,255,0.88)",
+  cursor: "pointer",
+};
+
+const panelRow: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 12,
+  padding: 12,
+  borderRadius: 14,
+  border: "1px solid rgba(255,255,255,0.10)",
+  background: "rgba(255,255,255,0.03)",
+};
+
+const miniBtn: React.CSSProperties = {
+  width: 34,
+  height: 34,
+  borderRadius: 12,
+  border: "1px solid rgba(255,255,255,0.14)",
+  background: "rgba(0,0,0,0.18)",
+  color: "rgba(255,255,255,0.88)",
+  cursor: "pointer",
+};
+
+const ghostBtn: React.CSSProperties = {
+  padding: "8px 10px",
+  borderRadius: 12,
+  border: "1px solid rgba(255,255,255,0.12)",
+  background: "transparent",
+  color: "rgba(255,255,255,0.70)",
+  cursor: "pointer",
+};

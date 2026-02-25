@@ -1,16 +1,17 @@
-import Link from "next/link";
-import RemoveButton from "@/app/components/RemoveButton";
-import TopNav from "@/app/components/TopNav";
+"use client";
 
-type Row = {
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import TopNav from "@/app/components/TopNav";
+import { getWishlistIds, removeFromWishlist, subscribeToStorageChange } from "@/lib/tcgStorage";
+
+type CardSummary = {
   id: string;
   name: string;
   set_name: string | null;
   number: string | null;
   rarity: string | null;
   image_small: string | null;
-  priority: number;
-  added_at: number;
 };
 
 function proxiedImage(url: string | null) {
@@ -18,10 +19,62 @@ function proxiedImage(url: string | null) {
   return `/api/img?url=${encodeURIComponent(url)}`;
 }
 
-export default async function WishlistPage() {
-  const res = await fetch(`${baseUrl()}/api/wishlist`, { cache: "no-store" });
-  const json = (await res.json()) as { data: Row[] };
-  const items = Array.isArray(json.data) ? json.data : [];
+async function fetchCardSummary(id: string): Promise<CardSummary | null> {
+  const res = await fetch(`/api/cards/${encodeURIComponent(id)}/detail`, { cache: "no-store" });
+  if (!res.ok) return null;
+
+  const json = (await res.json()) as {
+    data: {
+      id: string;
+      name: string;
+      set_name: string | null;
+      number: string | null;
+      rarity: string | null;
+      images?: { small?: string | null };
+      image_small?: string | null;
+    };
+  };
+
+  const d = json.data;
+  return {
+    id: d.id,
+    name: d.name,
+    set_name: d.set_name ?? null,
+    number: d.number ?? null,
+    rarity: d.rarity ?? null,
+    image_small: d.image_small ?? d.images?.small ?? null,
+  };
+}
+
+export default function WishlistPage() {
+  const [tick, setTick] = useState(0);
+  const [items, setItems] = useState<CardSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const ids = useMemo(() => getWishlistIds(), [tick]);
+
+  useEffect(() => {
+    return subscribeToStorageChange(() => setTick((x) => x + 1));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      try {
+        const results = await Promise.all(ids.map((id) => fetchCardSummary(id)));
+        if (cancelled) return;
+        setItems(results.filter((x): x is CardSummary => x !== null));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ids.join("|")]);
 
   return (
     <div style={wrap}>
@@ -32,18 +85,18 @@ export default async function WishlistPage() {
           <div style={{ minWidth: 0 }}>
             <div style={eyebrow}>Targets</div>
             <h1 style={h1}>My Wishlist</h1>
-            <div style={sub}>{items.length} item(s)</div>
+            <div style={sub}>
+              {loading ? "Loading…" : `${items.length} item(s)`}
+            </div>
           </div>
 
           <TopNav active="wishlist" />
         </header>
 
         <main style={{ marginTop: 16 }}>
-          {items.length === 0 ? (
+          {!loading && items.length === 0 ? (
             <div style={panel}>
-              <div style={{ fontWeight: 900, fontSize: 16 }}>
-                No wishlist items
-              </div>
+              <div style={{ fontWeight: 900, fontSize: 16 }}>No wishlist items</div>
               <div style={{ opacity: 0.7, marginTop: 6, fontSize: 14 }}>
                 Add cards you want to track for later.
               </div>
@@ -63,7 +116,6 @@ export default async function WishlistPage() {
                     <Link href={`/cards/${c.id}`} style={cardLink}>
                       <div style={thumbWrap}>
                         {thumb ? (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={thumb}
                             alt={c.name}
@@ -73,9 +125,7 @@ export default async function WishlistPage() {
                             loading="lazy"
                           />
                         ) : (
-                          <span style={{ opacity: 0.6, fontSize: 12 }}>
-                            No image
-                          </span>
+                          <span style={{ opacity: 0.6, fontSize: 12 }}>No image</span>
                         )}
                       </div>
 
@@ -93,10 +143,13 @@ export default async function WishlistPage() {
                     </Link>
 
                     <div style={actionsRow}>
-                      <RemoveButton
-                        endpoint={`/api/wishlist/${encodeURIComponent(c.id)}`}
-                        label="Remove"
-                      />
+                      <button
+                        type="button"
+                        onClick={() => removeFromWishlist(c.id)}
+                        style={removeBtn}
+                      >
+                        Remove
+                      </button>
                     </div>
                   </div>
                 );
@@ -111,10 +164,6 @@ export default async function WishlistPage() {
   );
 }
 
-function baseUrl() {
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return "http://localhost:3000";
-}
 
 const wrap: React.CSSProperties = {
   minHeight: "100vh",
@@ -223,6 +272,15 @@ const actionsRow: React.CSSProperties = {
   padding: "0 14px 14px 14px",
   display: "flex",
   justifyContent: "flex-end",
+};
+
+const removeBtn: React.CSSProperties = {
+  padding: "8px 10px",
+  borderRadius: 12,
+  border: "1px solid rgba(255,255,255,0.14)",
+  background: "rgba(0,0,0,0.22)",
+  color: "rgba(255,255,255,0.85)",
+  cursor: "pointer",
 };
 
 const thumbWrap: React.CSSProperties = {
