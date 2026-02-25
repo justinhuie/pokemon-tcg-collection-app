@@ -224,7 +224,7 @@ export async function GET(req: Request) {
   const sort = cleanString(searchParams.get("sort") ?? "");
 
   try {
-    const cardsDir = path.join(process.cwd(), "data", "pokemon-tcg-data", "cards");
+    const cardsDir = path.join(process.cwd(), "data", "pokemon-tcg-data", "cards", "en");
     const files = fs.readdirSync(cardsDir);
 
     const matches: CardRow[] = [];

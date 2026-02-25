@@ -60,7 +60,7 @@ function toCardRow(v: JsonValue): CardRow {
 export async function GET() {
   try {
     const baseDir = path.join(process.cwd(), "data", "pokemon-tcg-data");
-    const cardsDir = path.join(baseDir, "cards");
+    const cardsDir = path.join(baseDir, "cards", "en");
 
     const setSet = new Set<string>();
     const raritySet = new Set<string>();
