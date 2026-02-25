@@ -65,7 +65,6 @@ export default function HomePage() {
       const last = localStorage.getItem(SCAN_PREFILL_KEY);
       if (last && last.trim().length >= 2) setQ(last.trim());
     } catch {
-      // ignore
     }
   }, []);
 
@@ -77,7 +76,6 @@ export default function HomePage() {
         const json = (await res.json()) as { data: FilterOptions };
         if (json?.data) setFilterOptions(json.data);
       } catch {
-        // ignore
       }
     })();
   }, []);
@@ -218,12 +216,9 @@ export default function HomePage() {
 
   return (
     <div style={wrap}>
-      {/* background only (never steals clicks) */}
       <div style={glow} aria-hidden="true" />
 
-      {/* content above background */}
       <div style={content}>
-        {/* ✅ wider, responsive container */}
         <div style={shell}>
           <header style={topbar}>
             <div style={{ minWidth: 0 }}>
@@ -308,7 +303,6 @@ export default function HomePage() {
               </div>
             ) : null}
 
-            {/* ✅ auto-fill grid: expands to 3–4 columns on big screens */}
             <div style={resultsGrid}>
               {cards.map((c) => {
                 const thumb = proxiedImage(c.image_small);
@@ -378,7 +372,6 @@ export default function HomePage() {
               })}
             </div>
 
-            {/* Load more */}
             {cards.length > 0 ? (
               <div style={{ marginTop: 14, display: "flex", justifyContent: "center" }}>
                 {hasMore ? (
@@ -408,13 +401,12 @@ export default function HomePage() {
   );
 }
 
-/* ===== Styles ===== */
 
 const wrap: React.CSSProperties = {
   minHeight: "100vh",
   background: "#070a10",
   color: "rgba(255,255,255,0.92)",
-  padding: "clamp(18px, 2.5vw, 36px)", // ✅ responsive padding
+  padding: "clamp(18px, 2.5vw, 36px)", 
   position: "relative",
   overflowX: "hidden",
   fontFamily:
@@ -439,7 +431,6 @@ const content: React.CSSProperties = {
   zIndex: 1,
 };
 
-/** ✅ NEW: wider container (fills screen but still looks clean) */
 const shell: React.CSSProperties = {
   width: "min(1440px, 100%)",
   margin: "0 auto",
@@ -538,7 +529,6 @@ const empty: React.CSSProperties = {
   marginBottom: 12,
 };
 
-/** ✅ NEW: results grid that fills space */
 const resultsGrid: React.CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))",
