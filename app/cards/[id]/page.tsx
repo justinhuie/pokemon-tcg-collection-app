@@ -184,7 +184,7 @@ function CardPageInner() {
                 <Row k="Set" v={card.set_name ?? "—"} />
                 <Row k="Number" v={card.number ?? "—"} />
                 <Row k="Rarity" v={card.rarity ?? "—"} />
-                <Row k="Types" v={card.types?.length ? card.types.join(", ") : "—"} />
+                <Row k="Types" v={card.types?.length ? card.types.join(", ") : (card.supertype ?? "—")} />
               </div>
             </div>
 
