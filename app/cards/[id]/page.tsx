@@ -1,4 +1,8 @@
-import Image from "next/image";
+/* eslint-disable @next/next/no-img-element */
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import CardActions from "@/app/components/CardActions";
 
@@ -13,18 +17,57 @@ type CardDetail = {
   images: { small: string | null; large: string | null };
 };
 
-export default async function CardPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+export default function CardPage() {
+  const params = useParams<{ id: string }>();
+  const id = params?.id ?? "";
 
-  const detailRes = await fetch(`${baseUrl()}/api/cards/${id}/detail`, {
-    cache: "no-store",
-  });
+  const [card, setCard] = useState<CardDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  if (!detailRes.ok) {
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      setNotFound(false);
+      try {
+        const res = await fetch(`/api/cards/${encodeURIComponent(id)}/detail`, {
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          if (!cancelled) setNotFound(true);
+          return;
+        }
+        const json = (await res.json()) as { data: CardDetail };
+        if (!cancelled) setCard(json.data);
+      } catch {
+        if (!cancelled) setNotFound(true);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div style={wrap}>
+        <div style={glow} aria-hidden="true" />
+        <div style={shell}>
+          <div style={{ opacity: 0.6, padding: "60px 0", textAlign: "center" }}>
+            Loading…
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (notFound || !card) {
     return (
       <div style={wrap}>
         <div style={glow} aria-hidden="true" />
@@ -35,16 +78,13 @@ export default async function CardPage({
           <div style={{ ...panel, padding: 16, marginTop: 14 }}>
             <div style={{ fontWeight: 800, fontSize: 16 }}>Card not found</div>
             <div style={{ opacity: 0.7, marginTop: 6 }}>
-              This ID doesn’t exist in your local catalog.
+              This ID does not exist in the catalog.
             </div>
           </div>
         </div>
       </div>
     );
   }
-
-  const detailJson = (await detailRes.json()) as { data: CardDetail };
-  const card = detailJson.data;
 
   const large = card.images?.large
     ? `/api/img?url=${encodeURIComponent(card.images.large)}`
@@ -99,13 +139,9 @@ export default async function CardPage({
           <section style={panel}>
             <div style={imageArea}>
               {large ? (
-                <Image
+                <img
                   src={large}
                   alt={card.name}
-                  width={364}
-                  height={504}
-                  unoptimized
-                  priority
                   style={cardImg}
                 />
               ) : (
@@ -114,12 +150,10 @@ export default async function CardPage({
             </div>
           </section>
 
-          {/* RIGHT: details + add buttons */}
           <aside style={{ display: "grid", gap: 14, alignContent: "start" }}>
             <div style={panel}>
               <div style={{ padding: 18 }}>
                 <div style={sectionTitle}>Details</div>
-
                 <Row k="Set" v={card.set_name ?? "—"} />
                 <Row k="Number" v={card.number ?? "—"} />
                 <Row k="Rarity" v={card.rarity ?? "—"} />
@@ -130,8 +164,6 @@ export default async function CardPage({
             <div style={panel}>
               <div style={{ padding: 18 }}>
                 <div style={sectionTitle}>Actions</div>
-
-                {/* CardActions should only render Add buttons now */}
                 <CardActions cardId={id} />
               </div>
             </div>
@@ -151,11 +183,6 @@ function Row({ k, v }: { k: string; v: string }) {
       <div style={rowVal}>{v}</div>
     </div>
   );
-}
-
-function baseUrl() {
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return "http://localhost:3000";
 }
 
 /* ===== Styles ===== */
@@ -234,8 +261,7 @@ const panel: React.CSSProperties = {
   border: "1px solid rgba(255,255,255,0.12)",
   background: "rgba(0,0,0,0.28)",
   borderRadius: 18,
-  boxShadow:
-    "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
   overflow: "hidden",
 };
 
@@ -246,12 +272,6 @@ const grid: React.CSSProperties = {
   gap: 16,
   alignItems: "start",
 };
-
-const mediaHack = `
-@media (max-width: 980px) {
-  .__grid { grid-template-columns: 1fr; }
-}
-`;
 
 const imageArea: React.CSSProperties = {
   padding: 12,
@@ -266,7 +286,7 @@ const cardImg: React.CSSProperties = {
   height: "auto",
   width: "100%",
   maxWidth: "460px",
-  display: "block"
+  display: "block",
 };
 
 const pillLink: React.CSSProperties = {
