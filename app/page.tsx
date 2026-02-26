@@ -2,7 +2,7 @@
 "use client";
 
 // Import libraries
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import TopNav from "@/app/components/TopNav";
@@ -82,7 +82,7 @@ const SCAN_PREFILL_KEY = "scan:lastQuery";
 const PAGE_SIZE = 30;
 
 // Home Page
-export default function HomePage() {
+function HomePageInner() {
   const searchParams = useSearchParams();
   const [q, setQ] = useState("");
   const [cards, setCards] = useState<SearchCard[]>([]);
@@ -853,3 +853,11 @@ const loadMoreBtn: React.CSSProperties = {
   backdropFilter: "blur(10px)",
   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
 };
+
+export default function HomePage() {
+  return (
+    <Suspense>
+      <HomePageInner />
+    </Suspense>
+  );
+}

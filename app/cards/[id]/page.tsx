@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import CardActions from "@/app/components/CardActions";
@@ -18,7 +18,7 @@ type CardDetail = {
   images: { small: string | null; large: string | null };
 };
 
-export default function CardPage() {
+function CardPageInner() {
   const params = useParams<{ id: string }>();
   const id = params?.id ?? "";
   const searchParams = useSearchParams();
@@ -366,3 +366,11 @@ const rowVal: React.CSSProperties = {
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
 };
+
+export default function CardPage() {
+  return (
+    <Suspense>
+      <CardPageInner />
+    </Suspense>
+  );
+}
