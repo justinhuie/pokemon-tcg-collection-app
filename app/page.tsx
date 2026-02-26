@@ -4,6 +4,7 @@
 // Import libraries
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import TopNav from "@/app/components/TopNav";
 import FiltersBar, { FiltersState, FilterOptions } from "@/app/components/FilterBar";
 import {
@@ -82,6 +83,7 @@ const PAGE_SIZE = 30;
 
 // Home Page
 export default function HomePage() {
+  const searchParams = useSearchParams();
   const [q, setQ] = useState("");
   const [cards, setCards] = useState<SearchCard[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -123,11 +125,32 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    try {
-      const last = localStorage.getItem(SCAN_PREFILL_KEY);
-      if (last && last.trim().length >= 2) setQ(last.trim());
-    } catch {
+    // URL params (from "Back to search") take priority over localStorage prefill
+    const urlQ = searchParams.get("q");
+    const urlSet = searchParams.get("set") ?? "";
+    const urlRarity = searchParams.get("rarity") ?? "";
+    const urlType = searchParams.get("type") ?? "";
+    const urlSort = (searchParams.get("sort") ?? "name") as FiltersState["sort"];
+
+    if (urlQ) {
+      setQ(urlQ.trim());
+    } else {
+      try {
+        const last = localStorage.getItem(SCAN_PREFILL_KEY);
+        if (last && last.trim().length >= 2) setQ(last.trim());
+      } catch {}
     }
+
+    if (urlSet || urlRarity || urlType || urlSort !== "name") {
+      setFilters((prev) => ({
+        ...prev,
+        set: urlSet || prev.set,
+        rarity: urlRarity || prev.rarity,
+        type: urlType || prev.type,
+        sort: urlSort,
+      }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -283,6 +306,18 @@ export default function HomePage() {
       clearTimeout(t);
       controller.abort();
     };
+  }, [q, filters]);
+
+  // Build the URL to return to when clicking "Back to search" from a card
+  const backHref = useMemo(() => {
+    const p = new URLSearchParams();
+    if (q.trim().length >= 2) p.set("q", q.trim());
+    if (filters.set) p.set("set", filters.set);
+    if (filters.rarity) p.set("rarity", filters.rarity);
+    if (filters.type) p.set("type", filters.type);
+    if (filters.sort !== "name") p.set("sort", filters.sort);
+    const qs = p.toString();
+    return qs ? `/?${qs}` : "/";
   }, [q, filters]);
 
   // Enrich server results with live owned/wishlisted from localStorage,
@@ -441,7 +476,7 @@ export default function HomePage() {
                 const thumb = proxiedImage(c.image_small);
 
                 return (
-                  <Link key={c.id} href={`/cards/${c.id}`} style={resultCard} className="result-card">
+                  <Link key={c.id} href={`/cards/${c.id}?back=${encodeURIComponent(backHref)}`} style={resultCard} className="result-card">
                     <div style={thumbWrap}>
                       {thumb ? (
                         <img

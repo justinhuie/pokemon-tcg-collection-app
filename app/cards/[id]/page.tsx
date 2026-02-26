@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import CardActions from "@/app/components/CardActions";
 
@@ -21,6 +21,8 @@ type CardDetail = {
 export default function CardPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id ?? "";
+  const searchParams = useSearchParams();
+  const backHref = searchParams.get("back") ?? "/";
 
   const [card, setCard] = useState<CardDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -105,7 +107,7 @@ export default function CardPage() {
 
       <div style={shell}>
         <div style={topRow}>
-          <Link href="/" style={back}>
+          <Link href={backHref} style={back}>
             ← Back to search
           </Link>
 
