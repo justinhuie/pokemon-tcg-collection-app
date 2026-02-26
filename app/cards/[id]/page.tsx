@@ -27,6 +27,8 @@ function CardPageInner() {
   const [card, setCard] = useState<CardDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const [imgRetry, setImgRetry] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -89,8 +91,9 @@ function CardPageInner() {
     );
   }
 
-  const large = card.images?.large
-    ? `/api/img?url=${encodeURIComponent(card.images.large)}`
+  const rawLarge = card.images?.large ?? null;
+  const large = rawLarge
+    ? `/api/img?url=${encodeURIComponent(rawLarge)}${imgRetry > 0 ? `&r=${imgRetry}` : ""}`
     : null;
 
   const setLine = [
@@ -143,14 +146,33 @@ function CardPageInner() {
         <div style={grid}>
           <section style={panel}>
             <div style={imageArea}>
-              {large ? (
+              {large && !imgError ? (
                 <img
                   src={large}
                   alt={card.name}
                   style={cardImg}
+                  onError={() => {
+                    if (imgRetry < 2) {
+                      setImgRetry((n) => n + 1);
+                    } else {
+                      setImgError(true);
+                    }
+                  }}
                 />
               ) : (
-                <div style={{ opacity: 0.7, padding: 20 }}>No image available</div>
+                <div style={{ opacity: 0.7, padding: 20, textAlign: "center" }}>
+                  {imgError && rawLarge ? (
+                    <button
+                      type="button"
+                      onClick={() => { setImgError(false); setImgRetry(0); }}
+                      style={retryBtn}
+                    >
+                      Retry image
+                    </button>
+                  ) : (
+                    "No image available"
+                  )}
+                </div>
               )}
             </div>
           </section>
@@ -356,6 +378,16 @@ const row: React.CSSProperties = {
   border: "1px solid rgba(255,255,255,0.10)",
   background: "rgba(255,255,255,0.03)",
   marginTop: 10,
+};
+
+const retryBtn: React.CSSProperties = {
+  padding: "10px 18px",
+  borderRadius: 12,
+  border: "1px solid rgba(255,255,255,0.18)",
+  background: "rgba(255,255,255,0.06)",
+  color: "rgba(255,255,255,0.85)",
+  cursor: "pointer",
+  fontSize: 13,
 };
 
 const rowVal: React.CSSProperties = {
