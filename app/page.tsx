@@ -2,10 +2,15 @@
 "use client";
 
 // Import libraries
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import TopNav from "@/app/components/TopNav";
 import FiltersBar, { FiltersState, FilterOptions } from "@/app/components/FilterBar";
+import {
+  getCollectionMap,
+  getWishlistIds,
+  subscribeToStorageChange,
+} from "@/lib/tcgStorage";
 
 // SearchCard Data Structure
 type SearchCard = {
@@ -28,6 +33,47 @@ type SearchCard = {
 function proxiedImage(url: string | null): string | null {
   if (!url) return null;
   return `/api/img?url=${encodeURIComponent(url)}`;
+}
+
+// Fetch a single card's details for local-mode display
+async function fetchCardDetail(id: string): Promise<SearchCard | null> {
+  try {
+    const res = await fetch(`/api/cards/${encodeURIComponent(id)}/detail`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      data: {
+        id: string;
+        name: string;
+        supertype?: string | null;
+        set_id?: string | null;
+        set_name?: string | null;
+        number?: string | null;
+        rarity?: string | null;
+        types?: string[];
+        images?: { small?: string | null; large?: string | null };
+        image_small?: string | null;
+      };
+    };
+    const d = json.data;
+    return {
+      id: d.id,
+      name: d.name,
+      supertype: d.supertype ?? null,
+      set_id: d.set_id ?? null,
+      set_name: d.set_name ?? null,
+      number: d.number ?? null,
+      rarity: d.rarity ?? null,
+      types: d.types ?? [],
+      image_small: d.image_small ?? d.images?.small ?? null,
+      image_large: d.images?.large ?? null,
+      owned_qty: 0,
+      wishlisted: false,
+    };
+  } catch {
+    return null;
+  }
 }
 
 // Constants
@@ -61,6 +107,21 @@ export default function HomePage() {
     sort: "name",
   });
 
+  // localStorage state for owned/wishlisted filtering
+  const [collectionMap, setCollectionMap] = useState<Record<string, number>>({});
+  const [wishlistIds, setWishlistIds] = useState<string[]>([]);
+  const [localCards, setLocalCards] = useState<SearchCard[]>([]);
+  const [localLoading, setLocalLoading] = useState(false);
+
+  useEffect(() => {
+    const refresh = () => {
+      setCollectionMap(getCollectionMap());
+      setWishlistIds(getWishlistIds());
+    };
+    refresh();
+    return subscribeToStorageChange(refresh);
+  }, []);
+
   useEffect(() => {
     try {
       const last = localStorage.getItem(SCAN_PREFILL_KEY);
@@ -89,6 +150,58 @@ export default function HomePage() {
     filters.wishlisted ||
     filters.sort !== "name";
 
+  // "Local mode": only owned/wishlisted checked, no text/set/rarity/type — serve
+  // results directly from localStorage without hitting the search API.
+  const localMode =
+    q.trim().length < 2 &&
+    !filters.set &&
+    !filters.rarity &&
+    !filters.type &&
+    filters.sort === "name" &&
+    (filters.owned || filters.wishlisted);
+
+  const localIds = useMemo(() => {
+    if (!localMode) return [];
+    const ownedIds = filters.owned
+      ? Object.keys(collectionMap).filter((id) => (collectionMap[id] ?? 0) > 0)
+      : [];
+    const wIds = filters.wishlisted ? wishlistIds : [];
+    return [...new Set([...ownedIds, ...wIds])];
+  }, [localMode, filters.owned, filters.wishlisted, collectionMap, wishlistIds]);
+
+  const localIdsKey = localIds.join("|");
+
+  // Fetch card details for local mode
+  useEffect(() => {
+    if (!localMode) {
+      setLocalCards([]);
+      return;
+    }
+    if (localIds.length === 0) {
+      setLocalCards([]);
+      setLocalLoading(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setLocalLoading(true);
+      try {
+        const results = await Promise.all(localIds.map((id) => fetchCardDetail(id)));
+        if (cancelled) return;
+        const fetched = results.filter((x): x is SearchCard => x !== null).map((c) => ({
+          ...c,
+          owned_qty: collectionMap[c.id] ?? 0,
+          wishlisted: wishlistIds.includes(c.id),
+        }));
+        setLocalCards(fetched);
+      } finally {
+        if (!cancelled) setLocalLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localIdsKey, localMode]);
+
   function buildParams(query: string, p: number) {
     const params = new URLSearchParams();
     params.set("limit", String(PAGE_SIZE));
@@ -98,22 +211,27 @@ export default function HomePage() {
     if (filters.set) params.set("set", filters.set);
     if (filters.rarity) params.set("rarity", filters.rarity);
     if (filters.type) params.set("type", filters.type);
-    if (filters.owned) params.set("owned", "1");
-    if (filters.wishlisted) params.set("wishlisted", "1");
     if (filters.sort) params.set("sort", filters.sort);
 
     return params;
   }
 
   useEffect(() => {
+    // Local mode is handled by its own effect above
+    if (localMode) {
+      setCards([]);
+      setError(null);
+      setPage(1);
+      setHasMore(false);
+      return;
+    }
+
     const query = q.trim();
 
     const hasAnyFilter =
       !!filters.set ||
       !!filters.rarity ||
       !!filters.type ||
-      filters.owned ||
-      filters.wishlisted ||
       filters.sort !== "name";
 
     if (query.length < 2 && !hasAnyFilter) {
@@ -166,6 +284,20 @@ export default function HomePage() {
       controller.abort();
     };
   }, [q, filters]);
+
+  // Enrich server results with live owned/wishlisted from localStorage,
+  // then apply client-side owned/wishlisted filtering
+  const displayCards = useMemo(() => {
+    if (localMode) return localCards;
+    let result = cards.map((c) => ({
+      ...c,
+      owned_qty: collectionMap[c.id] ?? 0,
+      wishlisted: wishlistIds.includes(c.id),
+    }));
+    if (filters.owned) result = result.filter((c) => c.owned_qty > 0);
+    if (filters.wishlisted) result = result.filter((c) => c.wishlisted);
+    return result;
+  }, [localMode, localCards, cards, collectionMap, wishlistIds, filters.owned, filters.wishlisted]);
 
   async function loadMore() {
     if (loadingMore || loading) return;
@@ -263,10 +395,10 @@ export default function HomePage() {
               <div style={{ fontSize: 13 }}>
                 {error ? (
                   <span style={{ color: "rgba(255,160,160,0.95)" }}>⚠ {error}</span>
-                ) : loading ? (
+                ) : loading || localLoading ? (
                   <span style={{ opacity: 0.75 }}>Searching…</span>
                 ) : q.trim().length >= 2 || filtersActive ? (
-                  <span style={{ opacity: 0.75 }}>{cards.length} result(s)</span>
+                  <span style={{ opacity: 0.75 }}>{displayCards.length} result(s)</span>
                 ) : (
                   <span style={{ opacity: 0.65 }}>
                     Type 2+ characters (or use filters) to search.
@@ -295,7 +427,7 @@ export default function HomePage() {
           </div>
 
           <main style={{ marginTop: 14 }}>
-            {cards.length === 0 && (q.trim().length >= 2 || filtersActive) && !loading && !error ? (
+            {displayCards.length === 0 && (q.trim().length >= 2 || filtersActive) && !(loading || localLoading) && !error ? (
               <div style={empty}>
                 <div style={{ fontWeight: 900 }}>No matches</div>
                 <div style={{ marginTop: 6, opacity: 0.7, fontSize: 13 }}>
@@ -305,7 +437,7 @@ export default function HomePage() {
             ) : null}
 
             <div style={resultsGrid}>
-              {cards.map((c) => {
+              {displayCards.map((c) => {
                 const thumb = proxiedImage(c.image_small);
 
                 return (
@@ -375,7 +507,7 @@ export default function HomePage() {
               })}
             </div>
 
-            {cards.length > 0 ? (
+            {displayCards.length > 0 ? (
               <div style={{ marginTop: 14, display: "flex", justifyContent: "center" }}>
                 {hasMore ? (
                   <button
