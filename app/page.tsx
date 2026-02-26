@@ -363,8 +363,8 @@ export default function HomePage() {
             <TopNav active="search" />
           </header>
 
-          <div style={searchCard}>
-            <div style={searchRow}>
+          <div className="search-card" style={searchCard}>
+            <div className="search-row" style={searchRow}>
               <span style={searchIcon} aria-hidden="true">
                 ⌕
               </span>
@@ -441,7 +441,7 @@ export default function HomePage() {
                 const thumb = proxiedImage(c.image_small);
 
                 return (
-                  <Link key={c.id} href={`/cards/${c.id}`} style={resultCard}>
+                  <Link key={c.id} href={`/cards/${c.id}`} style={resultCard} className="result-card">
                     <div style={thumbWrap}>
                       {thumb ? (
                         <img
@@ -603,9 +603,9 @@ const searchCard: React.CSSProperties = {
   marginTop: 14,
   padding: 14,
   borderRadius: 18,
-  border: "1px solid rgba(255,255,255,0.12)",
-  background: "rgba(0,0,0,0.28)",
-  boxShadow: "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
+  border: "1px solid rgba(124,92,255,0.35)",
+  background: "rgba(4,2,14,0.72)",
+  boxShadow: "0 0 0 1px rgba(124,92,255,0.10), 0 0 40px rgba(124,92,255,0.13), 0 20px 60px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.07)",
 };
 
 const searchRow: React.CSSProperties = {
@@ -614,8 +614,9 @@ const searchRow: React.CSSProperties = {
   alignItems: "center",
   padding: "12px 14px",
   borderRadius: 16,
-  border: "1px solid rgba(255,255,255,0.14)",
-  background: "rgba(0,0,0,0.30)",
+  border: "1px solid rgba(124,92,255,0.28)",
+  background: "rgba(18,10,42,0.62)",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
 };
 
 const searchIcon: React.CSSProperties = {
@@ -675,11 +676,11 @@ const resultCard: React.CSSProperties = {
   gap: 14,
   padding: 14,
   borderRadius: 18,
-  border: "1px solid rgba(255,255,255,0.12)",
-  background: "rgba(0,0,0,0.28)",
+  border: "1px solid rgba(124,92,255,0.18)",
+  background: "rgba(4,2,14,0.60)",
   textDecoration: "none",
   color: "inherit",
-  boxShadow: "0 18px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
+  boxShadow: "0 0 0 1px rgba(124,92,255,0.06), 0 18px 60px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.06)",
 };
 
 const thumbWrap: React.CSSProperties = {

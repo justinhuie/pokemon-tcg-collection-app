@@ -24,3 +24,79 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Search panel — subtle purple pulse */
+@keyframes searchCardPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(124,92,255,0.10),
+      0 0 40px rgba(124,92,255,0.13),
+      0 20px 60px rgba(0,0,0,0.42),
+      inset 0 1px 0 rgba(255,255,255,0.07);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(124,92,255,0.20),
+      0 0 65px rgba(124,92,255,0.24),
+      0 20px 60px rgba(0,0,0,0.42),
+      inset 0 1px 0 rgba(255,255,255,0.07);
+  }
+}
+
+.search-card {
+  animation: searchCardPulse 5s ease-in-out infinite;
+}
+
+/* Search input row — glow on focus */
+.search-row {
+  transition: box-shadow 0.25s, border-color 0.25s;
+}
+.search-row:focus-within {
+  border-color: rgba(124,92,255,0.70) !important;
+  box-shadow: 0 0 24px rgba(124,92,255,0.30), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+}
+
+/* Filter selects — teal glow on hover/focus */
+.filter-select {
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.filter-select:hover,
+.filter-select:focus {
+  border-color: rgba(0,255,209,0.55) !important;
+  box-shadow: 0 0 16px rgba(0,255,209,0.22) !important;
+  outline: none;
+}
+
+/* Owned / Wishlisted toggles */
+.filter-toggle {
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.filter-toggle:hover {
+  border-color: rgba(0,255,209,0.42) !important;
+  box-shadow: 0 0 12px rgba(0,255,209,0.18) !important;
+}
+
+/* Clear button */
+.filter-clear {
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s, background 0.2s;
+}
+.filter-clear:hover {
+  border-color: rgba(255,255,255,0.42) !important;
+  box-shadow: 0 0 14px rgba(255,255,255,0.16) !important;
+  background: rgba(255,255,255,0.12) !important;
+}
+
+/* Result cards — purple lift on hover */
+.result-card {
+  transition: box-shadow 0.22s, border-color 0.22s, transform 0.18s;
+}
+.result-card:hover {
+  border-color: rgba(124,92,255,0.50) !important;
+  box-shadow:
+    0 0 24px rgba(124,92,255,0.26),
+    0 20px 60px rgba(0,0,0,0.34),
+    inset 0 1px 0 rgba(255,255,255,0.09) !important;
+  transform: translateY(-3px);
+}

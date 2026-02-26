@@ -42,6 +42,7 @@ export default function FiltersBar({
           <select
             value={value.set}
             onChange={(e) => patch("set", e.target.value)}
+            className="filter-select"
             style={select}
           >
             <option value="">All</option>
@@ -58,6 +59,7 @@ export default function FiltersBar({
           <select
             value={value.rarity}
             onChange={(e) => patch("rarity", e.target.value)}
+            className="filter-select"
             style={select}
           >
             <option value="">All</option>
@@ -74,6 +76,7 @@ export default function FiltersBar({
           <select
             value={value.type}
             onChange={(e) => patch("type", e.target.value)}
+            className="filter-select"
             style={select}
           >
             <option value="">All</option>
@@ -87,7 +90,7 @@ export default function FiltersBar({
       </div>
 
       <div style={row2}>
-        <label style={toggle}>
+        <label className="filter-toggle" style={toggle}>
           <input
             type="checkbox"
             checked={value.owned}
@@ -96,7 +99,7 @@ export default function FiltersBar({
           <span>Owned</span>
         </label>
 
-        <label style={toggle}>
+        <label className="filter-toggle" style={toggle}>
           <input
             type="checkbox"
             checked={value.wishlisted}
@@ -110,6 +113,7 @@ export default function FiltersBar({
           <select
             value={value.sort}
             onChange={(e) => patch("sort", e.target.value as SortKey)}
+            className="filter-select"
             style={select}
           >
             <option value="name">Name</option>
@@ -119,7 +123,7 @@ export default function FiltersBar({
           </select>
         </label>
 
-        <button type="button" onClick={onClear} style={clearBtn}>
+        <button type="button" onClick={onClear} className="filter-clear" style={clearBtn}>
           Clear
         </button>
       </div>
@@ -163,9 +167,9 @@ const select: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
   borderRadius: 14,
-  border: "1px solid rgba(255,255,255,0.14)",
+  border: "1px solid rgba(0,255,209,0.24)",
 
-  background: "#000",
+  background: "rgba(0,18,14,0.72)",
   color: "#fff",
 
   outline: "none",
@@ -176,6 +180,7 @@ const select: React.CSSProperties = {
   appearance: "none",
 
   colorScheme: "dark",
+  boxShadow: "0 0 8px rgba(0,255,209,0.07)",
 };
 
 const toggle: React.CSSProperties = {
@@ -183,18 +188,19 @@ const toggle: React.CSSProperties = {
   gap: 8,
   alignItems: "center",
   fontSize: 13,
-  opacity: 0.85,
+  opacity: 0.88,
   padding: "6px 10px",
   borderRadius: 12,
-  border: "1px solid rgba(255,255,255,0.12)",
-  background: "rgba(0,0,0,0.20)",
+  border: "1px solid rgba(0,255,209,0.20)",
+  background: "rgba(0,18,14,0.42)",
+  boxShadow: "0 0 8px rgba(0,255,209,0.06)",
 };
 
 const clearBtn: React.CSSProperties = {
   padding: "10px 12px",
   borderRadius: 14,
-  border: "1px solid rgba(255,255,255,0.14)",
+  border: "1px solid rgba(255,255,255,0.22)",
   background: "rgba(255,255,255,0.06)",
-  color: "rgba(255,255,255,0.85)",
-  cursor: "pointer",
+  color: "rgba(255,255,255,0.88)",
+  boxShadow: "0 0 8px rgba(255,255,255,0.06)",
 };
