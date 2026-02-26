@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   getOwnedQty,
   incrementOwned,
   isWishlisted,
   toggleWishlist,
   subscribeToStorageChange,
-  setOwnedQty,
 } from "@/lib/tcgStorage";
 
 export default function CardActions({ cardId }: { cardId: string }) {
@@ -22,98 +22,82 @@ export default function CardActions({ cardId }: { cardId: string }) {
 
   return (
     <div style={{ display: "grid", gap: 10 }}>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+      <div style={btnRow}>
+        <button
+          type="button"
+          onClick={() => incrementOwned(cardId, 1)}
+          style={primaryBtn}
+        >
+          + Add to Collection
+          {owned > 0 ? <span style={ownedBadge}>×{owned}</span> : null}
+        </button>
+
         <button
           type="button"
           onClick={() => toggleWishlist(cardId)}
           style={{
-            ...btn,
-            borderColor: wish ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.14)",
-            background: wish ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.18)",
+            ...primaryBtn,
+            borderColor: wish ? "rgba(124,92,255,0.55)" : "rgba(124,92,255,0.24)",
+            background: wish ? "rgba(124,92,255,0.20)" : "rgba(124,92,255,0.08)",
           }}
         >
           {wish ? "★ Wishlisted" : "☆ Add to Wishlist"}
         </button>
-
-        <button type="button" onClick={() => incrementOwned(cardId, 1)} style={btn}>
-          + Add to Collection
-        </button>
       </div>
 
-      <div style={panelRow}>
-        <div style={{ opacity: 0.7, fontSize: 13 }}>Owned</div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <button
-            type="button"
-            onClick={() => incrementOwned(cardId, -1)}
-            disabled={owned <= 0}
-            style={{ ...miniBtn, opacity: owned <= 0 ? 0.5 : 1 }}
-          >
-            −
-          </button>
-
-          <div style={{ minWidth: 40, textAlign: "center", fontWeight: 800 }}>
-            {owned}
-          </div>
-
-          <button type="button" onClick={() => incrementOwned(cardId, 1)} style={miniBtn}>
-            +
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setOwnedQty(cardId, 0)}
-            disabled={owned <= 0}
-            style={{ ...ghostBtn, opacity: owned <= 0 ? 0.5 : 1 }}
-          >
-            Clear
-          </button>
-        </div>
-      </div>
-
-      <div style={{ fontSize: 12, opacity: 0.55 }}>
-        Saved locally in your browser (localStorage).
+      <div style={btnRow}>
+        <Link href="/collection" style={ghostLink}>
+          View Collection →
+        </Link>
+        <Link href="/wishlist" style={ghostLink}>
+          View Wishlist →
+        </Link>
       </div>
     </div>
   );
 }
 
-const btn: React.CSSProperties = {
-  padding: "10px 12px",
-  borderRadius: 14,
-  border: "1px solid rgba(255,255,255,0.14)",
-  background: "rgba(0,0,0,0.18)",
-  color: "rgba(255,255,255,0.88)",
-  cursor: "pointer",
+const btnRow: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 10,
 };
 
-const panelRow: React.CSSProperties = {
+const primaryBtn: React.CSSProperties = {
   display: "flex",
-  justifyContent: "space-between",
   alignItems: "center",
-  gap: 12,
-  padding: 12,
+  justifyContent: "center",
+  gap: 8,
+  padding: "12px 14px",
   borderRadius: 14,
-  border: "1px solid rgba(255,255,255,0.10)",
-  background: "rgba(255,255,255,0.03)",
-};
-
-const miniBtn: React.CSSProperties = {
-  width: 34,
-  height: 34,
-  borderRadius: 12,
-  border: "1px solid rgba(255,255,255,0.14)",
-  background: "rgba(0,0,0,0.18)",
-  color: "rgba(255,255,255,0.88)",
+  border: "1px solid rgba(124,92,255,0.24)",
+  background: "rgba(124,92,255,0.08)",
+  color: "rgba(255,255,255,0.90)",
   cursor: "pointer",
+  fontSize: 13,
+  fontWeight: 700,
+  boxShadow: "0 0 10px rgba(124,92,255,0.10)",
 };
 
-const ghostBtn: React.CSSProperties = {
-  padding: "8px 10px",
-  borderRadius: 12,
+const ownedBadge: React.CSSProperties = {
+  fontSize: 11,
+  padding: "2px 7px",
+  borderRadius: 999,
+  background: "rgba(124,92,255,0.30)",
+  border: "1px solid rgba(124,92,255,0.40)",
+  color: "rgba(210,190,255,0.95)",
+};
+
+const ghostLink: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "10px 14px",
+  borderRadius: 14,
   border: "1px solid rgba(255,255,255,0.12)",
-  background: "transparent",
-  color: "rgba(255,255,255,0.70)",
-  cursor: "pointer",
+  background: "rgba(255,255,255,0.04)",
+  color: "rgba(255,255,255,0.65)",
+  textDecoration: "none",
+  fontSize: 13,
+  textAlign: "center",
 };

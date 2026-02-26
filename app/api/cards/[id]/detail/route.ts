@@ -57,6 +57,7 @@ function formatCard(obj: { [key: string]: JsonValue }, id: string) {
   const set_name = asString(obj.set_name) ?? asString(obj.setName) ?? null;
   const number = asString(obj.number) ?? null;
   const rarity = asString(obj.rarity) ?? null;
+  const supertype = asString(obj.supertype) ?? null;
   const types = asStringArray(obj.types);
 
   const imagesObj =
@@ -76,6 +77,7 @@ function formatCard(obj: { [key: string]: JsonValue }, id: string) {
     set_name,
     number,
     rarity,
+    supertype,
     types,
     image_small,
     images: { small: image_small, large: image_large },

@@ -13,6 +13,7 @@ type CardDetail = {
   set_name: string | null;
   number: string | null;
   rarity: string | null;
+  supertype: string | null;
   types: string[];
   images: { small: string | null; large: string | null };
 };
@@ -125,12 +126,14 @@ export default function CardPage() {
           <div style={typeRow}>
             {card.types?.length ? (
               card.types.map((t) => (
-                <span key={t} style={chip}>
+                <span key={t} style={typeChipStyle(t)}>
                   {t}
                 </span>
               ))
             ) : (
-              <span style={{ ...chip, opacity: 0.6 }}>No types</span>
+              <span style={typeChipStyle(card.supertype ?? "")}>
+                {card.supertype ?? "No types"}
+              </span>
             )}
           </div>
         </div>
@@ -299,7 +302,7 @@ const pillLink: React.CSSProperties = {
   background: "rgba(0,0,0,0.18)",
 };
 
-const chip: React.CSSProperties = {
+const chipBase: React.CSSProperties = {
   fontSize: 12,
   padding: "6px 10px",
   borderRadius: 999,
@@ -307,6 +310,33 @@ const chip: React.CSSProperties = {
   background: "rgba(0,0,0,0.25)",
   color: "rgba(255,255,255,0.72)",
 };
+
+const TYPE_GLOW: Record<string, { border: string; shadow: string; color: string }> = {
+  Fire:       { border: "rgba(255,90,30,0.55)",   shadow: "0 0 7px 1px rgba(255,90,30,0.35)",   color: "rgba(255,180,140,0.92)" },
+  Water:      { border: "rgba(40,160,255,0.55)",  shadow: "0 0 7px 1px rgba(40,160,255,0.35)",  color: "rgba(140,210,255,0.92)" },
+  Grass:      { border: "rgba(50,200,80,0.55)",   shadow: "0 0 7px 1px rgba(50,200,80,0.35)",   color: "rgba(140,240,150,0.92)" },
+  Lightning:  { border: "rgba(255,210,0,0.55)",   shadow: "0 0 7px 1px rgba(255,210,0,0.40)",   color: "rgba(255,235,130,0.92)" },
+  Psychic:    { border: "rgba(200,60,220,0.55)",  shadow: "0 0 7px 1px rgba(200,60,220,0.35)",  color: "rgba(230,160,255,0.92)" },
+  Fighting:   { border: "rgba(200,90,30,0.55)",   shadow: "0 0 7px 1px rgba(200,90,30,0.35)",   color: "rgba(230,170,120,0.92)" },
+  Darkness:   { border: "rgba(130,80,200,0.55)",  shadow: "0 0 7px 1px rgba(130,80,200,0.35)",  color: "rgba(190,155,240,0.92)" },
+  Metal:      { border: "rgba(160,180,200,0.55)", shadow: "0 0 7px 1px rgba(160,180,200,0.30)", color: "rgba(200,215,230,0.92)" },
+  Fairy:      { border: "rgba(255,100,180,0.55)", shadow: "0 0 7px 1px rgba(255,100,180,0.35)", color: "rgba(255,185,225,0.92)" },
+  Dragon:     { border: "rgba(40,90,220,0.55)",   shadow: "0 0 7px 1px rgba(40,90,220,0.35)",   color: "rgba(130,165,255,0.92)" },
+  Colorless:  { border: "rgba(200,200,200,0.30)", shadow: "0 0 5px 1px rgba(200,200,200,0.15)", color: "rgba(220,220,220,0.80)" },
+  Trainer:    { border: "rgba(230,230,230,0.45)", shadow: "0 0 7px 1px rgba(230,230,230,0.25)", color: "rgba(240,240,240,0.90)" },
+  Energy:     { border: "rgba(230,230,230,0.45)", shadow: "0 0 7px 1px rgba(230,230,230,0.25)", color: "rgba(240,240,240,0.90)" },
+};
+
+function typeChipStyle(typeName: string): React.CSSProperties {
+  const glow = TYPE_GLOW[typeName];
+  if (!glow) return chipBase;
+  return {
+    ...chipBase,
+    border: `1px solid ${glow.border}`,
+    boxShadow: glow.shadow,
+    color: glow.color,
+  };
+}
 
 const sectionTitle: React.CSSProperties = {
   fontWeight: 850,
