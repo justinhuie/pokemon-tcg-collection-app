@@ -167,9 +167,9 @@ const select: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
   borderRadius: 14,
-  border: "1px solid rgba(0,255,209,0.24)",
+  border: "1px solid rgba(124,92,255,0.24)",
 
-  background: "rgba(0,18,14,0.72)",
+  background: "rgba(8,5,22,0.72)",
   color: "#fff",
 
   outline: "none",
@@ -180,7 +180,7 @@ const select: React.CSSProperties = {
   appearance: "none",
 
   colorScheme: "dark",
-  boxShadow: "0 0 8px rgba(0,255,209,0.07)",
+  boxShadow: "0 0 8px rgba(124,92,255,0.07)",
 };
 
 const toggle: React.CSSProperties = {
@@ -191,9 +191,9 @@ const toggle: React.CSSProperties = {
   opacity: 0.88,
   padding: "6px 10px",
   borderRadius: 12,
-  border: "1px solid rgba(0,255,209,0.20)",
-  background: "rgba(0,18,14,0.42)",
-  boxShadow: "0 0 8px rgba(0,255,209,0.06)",
+  border: "1px solid rgba(124,92,255,0.22)",
+  background: "rgba(8,5,22,0.42)",
+  boxShadow: "0 0 8px rgba(124,92,255,0.06)",
 };
 
 const clearBtn: React.CSSProperties = {
