@@ -326,14 +326,14 @@ const eyebrow: React.CSSProperties = {
 
 const h1: React.CSSProperties = {
   margin: "4px 0 0 0",
-  fontSize: 34,
+  fontSize: 30,
   fontWeight: 900,
   letterSpacing: "-0.02em",
 };
 
 const sub: React.CSSProperties = {
   marginTop: 8,
-  fontSize: 14,
+  fontSize: 13,
   opacity: 0.68,
 };
 
