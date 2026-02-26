@@ -11,6 +11,7 @@ import FiltersBar, { FiltersState, FilterOptions } from "@/app/components/Filter
 type SearchCard = {
   id: string;
   name: string;
+  supertype: string | null;
   set_id: string | null;
   set_name: string | null;
   number: string | null;
@@ -363,7 +364,9 @@ export default function HomePage() {
                             ) : null}
                           </>
                         ) : (
-                          <span style={{ ...chip, ...chipGhostStyle }}>No types</span>
+                          <span style={typeChipStyle(c.supertype ?? "")}>
+                            {c.supertype ?? "No types"}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -644,6 +647,8 @@ const TYPE_GLOW: Record<string, { border: string; shadow: string; color: string 
   Fairy:      { border: "rgba(255,100,180,0.55)", shadow: "0 0 7px 1px rgba(255,100,180,0.35)", color: "rgba(255,185,225,0.92)" },
   Dragon:     { border: "rgba(40,90,220,0.55)",   shadow: "0 0 7px 1px rgba(40,90,220,0.35)",   color: "rgba(130,165,255,0.92)" },
   Colorless:  { border: "rgba(200,200,200,0.30)", shadow: "0 0 5px 1px rgba(200,200,200,0.15)", color: "rgba(220,220,220,0.80)" },
+  Trainer:    { border: "rgba(230,230,230,0.45)", shadow: "0 0 7px 1px rgba(230,230,230,0.25)", color: "rgba(240,240,240,0.90)" },
+  Energy:     { border: "rgba(230,230,230,0.45)", shadow: "0 0 7px 1px rgba(230,230,230,0.25)", color: "rgba(240,240,240,0.90)" },
 };
 
 function typeChipStyle(typeName: string): React.CSSProperties {

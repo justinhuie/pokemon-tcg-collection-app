@@ -10,6 +10,7 @@ const PAGE_SIZE_DEFAULT = 30;
 type SearchCard = {
   id: string;
   name: string;
+  supertype: string | null;
   set_id: string | null;
   set_name: string | null;
   number: string | null;
@@ -32,6 +33,7 @@ type JsonValue =
 type CardRow = {
   id: string;
   name: string;
+  supertype: string | null;
   set_id: string | null;
   set_name: string | null;
   number: string | null;
@@ -75,6 +77,7 @@ function toCardRow(v: JsonValue): CardRow | null {
   const set_id = asString(obj.set_id) ?? asString(obj.setId) ?? null;
   const set_name = asString(obj.set_name) ?? asString(obj.setName) ?? null;
 
+  const supertype = asString(obj.supertype) ?? null;
   const number = asString(obj.number) ?? null;
   const rarity = asString(obj.rarity) ?? null;
 
@@ -97,6 +100,7 @@ function toCardRow(v: JsonValue): CardRow | null {
   return {
     id,
     name,
+    supertype,
     set_id,
     set_name,
     number,
@@ -321,6 +325,7 @@ export async function GET(req: Request) {
     const data: SearchCard[] = pageItems.map((r) => ({
       id: r.id,
       name: r.name,
+      supertype: r.supertype,
       set_id: r.set_id,
       set_name: r.set_name,
       number: r.number,
