@@ -82,19 +82,34 @@ function formatCard(obj: { [key: string]: JsonValue }, id: string) {
   };
 }
 
+function loadSetsMap(dataDir: string): Record<string, string> {
+  try {
+    const arr = JSON.parse(
+      fs.readFileSync(path.join(dataDir, "sets", "en.json"), "utf8")
+    ) as Array<{ id?: string; name?: string }>;
+    const map: Record<string, string> = {};
+    for (const s of arr) {
+      if (typeof s.id === "string" && typeof s.name === "string") {
+        map[s.id] = s.name;
+      }
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
 export async function GET(
   _req: Request,
   ctx: { params: Promise<{ id: string }> }
 ) {
   const { id } = await ctx.params;
 
-  const cardsDir = path.join(
-    process.cwd(),
-    "data",
-    "pokemon-tcg-data",
-    "cards",
-    "en"
-  );
+  const dataDir = path.join(process.cwd(), "data", "pokemon-tcg-data");
+  const cardsDir = path.join(dataDir, "cards", "en");
+  const setsMap = loadSetsMap(dataDir);
+
+  let obj: { [key: string]: JsonValue } | null = null;
 
   // Try to derive the set file from the card ID (e.g. "base1-4" → "base1.json")
   const lastDash = id.lastIndexOf("-");
@@ -102,28 +117,40 @@ export async function GET(
     const setId = id.substring(0, lastDash);
     const filePath = path.join(cardsDir, `${setId}.json`);
     if (fs.existsSync(filePath)) {
-      const obj = findCardById(filePath, id);
-      if (obj) {
-        const card = formatCard(obj, id);
-        if (card) return NextResponse.json({ data: card });
-      }
+      obj = findCardById(filePath, id);
     }
   }
 
   // Fallback: scan all set files
-  try {
-    const files = fs.readdirSync(cardsDir);
-    for (const file of files) {
-      if (!file.endsWith(".json")) continue;
-      const obj = findCardById(path.join(cardsDir, file), id);
-      if (obj) {
-        const card = formatCard(obj, id);
-        if (card) return NextResponse.json({ data: card });
+  if (!obj) {
+    try {
+      const files = fs.readdirSync(cardsDir);
+      for (const file of files) {
+        if (!file.endsWith(".json")) continue;
+        obj = findCardById(path.join(cardsDir, file), id);
+        if (obj) break;
       }
+    } catch {
+      // directory missing
     }
-  } catch {
-    // directory missing
   }
 
-  return NextResponse.json({ error: "Card not found" }, { status: 404 });
+  if (!obj) {
+    return NextResponse.json({ error: "Card not found" }, { status: 404 });
+  }
+
+  const card = formatCard(obj, id);
+  if (!card) {
+    return NextResponse.json({ error: "Card not found" }, { status: 404 });
+  }
+
+  // Populate set_id and set_name from sets map if missing
+  if (!card.set_id && lastDash > 0) {
+    card.set_id = id.substring(0, lastDash);
+  }
+  if (!card.set_name && card.set_id) {
+    card.set_name = setsMap[card.set_id] ?? null;
+  }
+
+  return NextResponse.json({ data: card });
 }

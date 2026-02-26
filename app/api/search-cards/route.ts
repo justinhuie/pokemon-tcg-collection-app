@@ -203,6 +203,25 @@ function passesFilters(card: CardRow, opts: {
   return true;
 }
 
+function loadSetsMap(dataDir: string): Record<string, string> {
+  try {
+    const setsPath = path.join(dataDir, "sets", "en.json");
+    const arr = JSON.parse(fs.readFileSync(setsPath, "utf8")) as Array<{
+      id?: string;
+      name?: string;
+    }>;
+    const map: Record<string, string> = {};
+    for (const s of arr) {
+      if (typeof s.id === "string" && typeof s.name === "string") {
+        map[s.id] = s.name;
+      }
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
@@ -224,7 +243,9 @@ export async function GET(req: Request) {
   const sort = cleanString(searchParams.get("sort") ?? "");
 
   try {
-    const cardsDir = path.join(process.cwd(), "data", "pokemon-tcg-data", "cards", "en");
+    const dataDir = path.join(process.cwd(), "data", "pokemon-tcg-data");
+    const cardsDir = path.join(dataDir, "cards", "en");
+    const setsMap = loadSetsMap(dataDir);
     const files = fs.readdirSync(cardsDir);
 
     const matches: CardRow[] = [];
@@ -240,6 +261,20 @@ export async function GET(req: Request) {
       for (const item of arr) {
         const card = toCardRow(item);
         if (!card) continue;
+
+        // Derive set_name from sets map if not present in card data
+        if (!card.set_name && card.set_id) {
+          card.set_name = setsMap[card.set_id] ?? null;
+        }
+        // Derive set_id from card id if still missing (e.g. "base1-4" → "base1")
+        if (!card.set_id) {
+          const dash = card.id.lastIndexOf("-");
+          if (dash > 0) {
+            const derivedSetId = card.id.substring(0, dash);
+            card.set_id = derivedSetId;
+            card.set_name = setsMap[derivedSetId] ?? null;
+          }
+        }
 
         if (passesFilters(card, { q, set, rarity, type })) {
           matches.push(card);

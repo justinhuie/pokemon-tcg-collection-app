@@ -57,12 +57,25 @@ function toCardRow(v: JsonValue): CardRow {
   return { set_name, rarity, types };
 }
 
+function loadSetNames(baseDir: string): string[] {
+  try {
+    const setsPath = path.join(baseDir, "sets", "en.json");
+    const raw = fs.readFileSync(setsPath, "utf8");
+    const arr = JSON.parse(raw) as Array<{ id?: string; name?: string }>;
+    return arr
+      .map((s) => (typeof s.name === "string" ? s.name.trim() : ""))
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b));
+  } catch {
+    return [];
+  }
+}
+
 export async function GET() {
   try {
     const baseDir = path.join(process.cwd(), "data", "pokemon-tcg-data");
     const cardsDir = path.join(baseDir, "cards", "en");
 
-    const setSet = new Set<string>();
     const raritySet = new Set<string>();
     const typeSet = new Set<string>();
 
@@ -80,11 +93,6 @@ export async function GET() {
       for (const item of arr) {
         const card = toCardRow(item);
 
-        if (card.set_name) {
-          const val = cleanString(card.set_name);
-          if (val) setSet.add(val);
-        }
-
         if (card.rarity) {
           const val = cleanString(card.rarity);
           if (val) raritySet.add(val);
@@ -100,7 +108,7 @@ export async function GET() {
     }
 
     const payload: FiltersPayload = {
-      sets: Array.from(setSet).sort((a, b) => a.localeCompare(b)),
+      sets: loadSetNames(baseDir),
       rarities: Array.from(raritySet).sort((a, b) => a.localeCompare(b)),
       types: Array.from(typeSet).sort((a, b) => a.localeCompare(b)),
     };
