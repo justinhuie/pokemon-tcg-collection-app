@@ -46,9 +46,23 @@ Everything runs on a local SQLite database seeded from the Pokémon TCG JSON dat
 
 ## Implementation Notes
 
-- Card search is powered by SQLite FTS5 which makes text search fast
+- Card search is powered by SQLite FTS5; filtering, sorting and pagination run in SQL against indexed columns, so each request only loads the page it returns
 - Images are loaded through a small proxy route to avoid CORS issues from the data source
 - The UI is state-driven
+
+---
+
+## Performance
+
+Search originally scanned and parsed all 20,078 cards from the JSON dataset on every request. Moving it to SQLite FTS5 with indexed filters (measured on a local production build, 11-query mix, 100 requests per query):
+
+| Metric | Before (JSON scan) | After (SQLite FTS5) |
+| --- | --- | --- |
+| Median latency (end-to-end HTTP) | 231 ms | 9.5 ms |
+| Throughput, 10 concurrent clients | 6.5 req/s | 233 req/s |
+| p95 latency, 10 concurrent clients | 2,443 ms | 50 ms |
+
+Reproduce with `npm run bench:search` (in-process, includes a result-parity check against the original implementation). See `scripts/bench/` for the HTTP and throughput scripts and raw results.
 
 ---
 
@@ -109,7 +123,7 @@ data/pokemon-tcg-data/
 3. Seed the database:
 
 ```bash
-npm run seed
+npm run seed:catalog
 ```
 
 This generates:

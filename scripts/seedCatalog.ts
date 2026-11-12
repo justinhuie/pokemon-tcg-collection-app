@@ -1,10 +1,11 @@
 import fs from "fs";
 import path from "path";
-import { getDb, migrate, rebuildCardsFts } from "../lib/db";
+import { getDb, migrate, rebuildCardTypes, rebuildCardsFts } from "../lib/db";
 
 type RawCard = {
   id?: string;
   name?: string;
+  supertype?: string;
   number?: string;
   rarity?: string;
   types?: string[];
@@ -110,6 +111,7 @@ type InsertRow = {
   types_json: string | null;
   image_small: string | null;
   image_large: string | null;
+  supertype: string | null;
 };
 
 async function main() {
@@ -135,9 +137,9 @@ async function main() {
 
   const insert = db.prepare(`
     INSERT INTO cards (
-      id, name, set_id, set_name, number, rarity, types_json, image_small, image_large
+      id, name, set_id, set_name, number, rarity, types_json, image_small, image_large, supertype
     ) VALUES (
-      @id, @name, @set_id, @set_name, @number, @rarity, @types_json, @image_small, @image_large
+      @id, @name, @set_id, @set_name, @number, @rarity, @types_json, @image_small, @image_large, @supertype
     )
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
@@ -147,7 +149,8 @@ async function main() {
       rarity = excluded.rarity,
       types_json = excluded.types_json,
       image_small = excluded.image_small,
-      image_large = excluded.image_large;
+      image_large = excluded.image_large,
+      supertype = excluded.supertype;
   `);
 
   const tx = db.transaction((rows: InsertRow[]) => {
@@ -178,6 +181,7 @@ async function main() {
         types_json: Array.isArray(c.types) ? JSON.stringify(c.types) : null,
         image_small: typeof c.images?.small === "string" ? c.images.small : null,
         image_large: typeof c.images?.large === "string" ? c.images.large : null,
+        supertype: typeof c.supertype === "string" ? c.supertype : null,
       });
     }
 
@@ -188,6 +192,8 @@ async function main() {
   console.log(`Inserted/updated ${total} cards into data/app.db`);
   console.log("Rebuilding FTS index…");
   rebuildCardsFts(db);
+  console.log("Rebuilding card_types…");
+  rebuildCardTypes(db);
   db.close();
 
   console.log("✅ Catalog seeded and FTS ready.");

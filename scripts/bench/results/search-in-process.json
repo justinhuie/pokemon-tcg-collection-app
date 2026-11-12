@@ -1,0 +1,451 @@
+{
+  "mode": "in-process",
+  "date": "2026-11-12T05:07:05.706Z",
+  "iters": 100,
+  "warmup": 10,
+  "node": "v24.14.0",
+  "cpu": "AMD Ryzen AI 9 HX 375 w/ Radeon 890M           ",
+  "cores": 24,
+  "os": "win32 10.0.26200",
+  "overall": {
+    "legacyMedianOfMedians": 107.65,
+    "sqliteMedianOfMedians": 0.49
+  },
+  "results": [
+    {
+      "key": "common",
+      "label": "Common name (pikachu)",
+      "qs": "q=pikachu",
+      "legacy": {
+        "n": 100,
+        "min": 106.6,
+        "median": 253.47,
+        "mean": 237.74,
+        "p95": 288.25,
+        "p99": 293.62,
+        "max": 300.04
+      },
+      "sqlite": {
+        "n": 100,
+        "min": 0.38,
+        "median": 0.71,
+        "mean": 0.79,
+        "p95": 1.25,
+        "p99": 1.4,
+        "max": 2.32
+      },
+      "speedupMedian": 357,
+      "reductionMedianPct": 99.7,
+      "reductionP95Pct": 99.6,
+      "firstPageIdentical": true,
+      "firstPageCount": {
+        "legacy": 30,
+        "sqlite": 30
+      },
+      "parity": {
+        "legacyMatches": 194,
+        "sqliteMatches": 194,
+        "onlyLegacy": 0,
+        "onlySqlite": 0,
+        "onlyLegacySample": [],
+        "onlySqliteSample": []
+      }
+    },
+    {
+      "key": "popular",
+      "label": "Popular name (charizard)",
+      "qs": "q=charizard",
+      "legacy": {
+        "n": 100,
+        "min": 184.36,
+        "median": 237.04,
+        "mean": 233.2,
+        "p95": 262.22,
+        "p99": 267.89,
+        "max": 269.15
+      },
+      "sqlite": {
+        "n": 100,
+        "min": 0.42,
+        "median": 0.63,
+        "mean": 0.66,
+        "p95": 0.96,
+        "p99": 1.01,
+        "max": 1.13
+      },
+      "speedupMedian": 376.3,
+      "reductionMedianPct": 99.7,
+      "reductionP95Pct": 99.6,
+      "firstPageIdentical": true,
+      "firstPageCount": {
+        "legacy": 30,
+        "sqlite": 30
+      },
+      "parity": {
+        "legacyMatches": 107,
+        "sqliteMatches": 107,
+        "onlyLegacy": 0,
+        "onlySqlite": 0,
+        "onlyLegacySample": [],
+        "onlySqliteSample": []
+      }
+    },
+    {
+      "key": "prefix",
+      "label": "Short prefix (char)",
+      "qs": "q=char",
+      "legacy": {
+        "n": 100,
+        "min": 99.05,
+        "median": 219.86,
+        "mean": 198.35,
+        "p95": 270.51,
+        "p99": 280.99,
+        "max": 283.69
+      },
+      "sqlite": {
+        "n": 100,
+        "min": 0.23,
+        "median": 0.25,
+        "mean": 0.26,
+        "p95": 0.31,
+        "p99": 0.47,
+        "max": 0.55
+      },
+      "speedupMedian": 879.4,
+      "reductionMedianPct": 99.9,
+      "reductionP95Pct": 99.9,
+      "firstPageIdentical": true,
+      "firstPageCount": {
+        "legacy": 30,
+        "sqlite": 30
+      },
+      "parity": {
+        "legacyMatches": 263,
+        "sqliteMatches": 237,
+        "onlyLegacy": 26,
+        "onlySqlite": 0,
+        "onlyLegacySample": [
+          "bw8-15",
+          "dp1-76",
+          "dp5-56",
+          "dp5-57",
+          "dpp-DP02"
+        ],
+        "onlySqliteSample": []
+      }
+    },
+    {
+      "key": "multi",
+      "label": "Two words (mewtwo ex)",
+      "qs": "q=mewtwo%20ex",
+      "legacy": {
+        "n": 100,
+        "min": 100.02,
+        "median": 107.65,
+        "mean": 137.7,
+        "p95": 233.14,
+        "p99": 248.29,
+        "max": 256.61
+      },
+      "sqlite": {
+        "n": 100,
+        "min": 0.3,
+        "median": 0.32,
+        "mean": 0.33,
+        "p95": 0.37,
+        "p99": 0.45,
+        "max": 0.5
+      },
+      "speedupMedian": 336.4,
+      "reductionMedianPct": 99.7,
+      "reductionP95Pct": 99.8,
+      "firstPageIdentical": true,
+      "firstPageCount": {
+        "legacy": 30,
+        "sqlite": 30
+      },
+      "parity": {
+        "legacyMatches": 31,
+        "sqliteMatches": 31,
+        "onlyLegacy": 0,
+        "onlySqlite": 0,
+        "onlyLegacySample": [],
+        "onlySqliteSample": []
+      }
+    },
+    {
+      "key": "rare",
+      "label": "Rare name (spiritomb)",
+      "qs": "q=spiritomb",
+      "legacy": {
+        "n": 100,
+        "min": 99.16,
+        "median": 105.23,
+        "mean": 106.24,
+        "p95": 115.27,
+        "p99": 125.02,
+        "max": 128.45
+      },
+      "sqlite": {
+        "n": 100,
+        "min": 0.14,
+        "median": 0.15,
+        "mean": 0.17,
+        "p95": 0.26,
+        "p99": 0.3,
+        "max": 0.53
+      },
+      "speedupMedian": 701.5,
+      "reductionMedianPct": 99.9,
+      "reductionP95Pct": 99.8,
+      "firstPageIdentical": true,
+      "firstPageCount": {
+        "legacy": 24,
+        "sqlite": 24
+      },
+      "parity": {
+        "legacyMatches": 24,
+        "sqliteMatches": 24,
+        "onlyLegacy": 0,
+        "onlySqlite": 0,
+        "onlyLegacySample": [],
+        "onlySqliteSample": []
+      }
+    },
+    {
+      "key": "none",
+      "label": "No matches (zzqx)",
+      "qs": "q=zzqx",
+      "legacy": {
+        "n": 100,
+        "min": 98.93,
+        "median": 105.58,
+        "mean": 107,
+        "p95": 117.16,
+        "p99": 125,
+        "max": 151.92
+      },
+      "sqlite": {
+        "n": 100,
+        "min": 0.05,
+        "median": 0.05,
+        "mean": 0.06,
+        "p95": 0.07,
+        "p99": 0.09,
+        "max": 0.11
+      },
+      "speedupMedian": 2111.6,
+      "reductionMedianPct": 100,
+      "reductionP95Pct": 99.9,
+      "firstPageIdentical": true,
+      "firstPageCount": {
+        "legacy": 0,
+        "sqlite": 0
+      },
+      "parity": {
+        "legacyMatches": 0,
+        "sqliteMatches": 0,
+        "onlyLegacy": 0,
+        "onlySqlite": 0,
+        "onlyLegacySample": [],
+        "onlySqliteSample": []
+      }
+    },
+    {
+      "key": "type",
+      "label": "Type filter (Fire)",
+      "qs": "type=Fire",
+      "legacy": {
+        "n": 100,
+        "min": 95.3,
+        "median": 101.93,
+        "mean": 103.18,
+        "p95": 114.2,
+        "p99": 130.34,
+        "max": 136.39
+      },
+      "sqlite": {
+        "n": 100,
+        "min": 0.8,
+        "median": 0.82,
+        "mean": 0.85,
+        "p95": 0.91,
+        "p99": 1.14,
+        "max": 1.31
+      },
+      "speedupMedian": 124.3,
+      "reductionMedianPct": 99.2,
+      "reductionP95Pct": 99.2,
+      "firstPageIdentical": true,
+      "firstPageCount": {
+        "legacy": 30,
+        "sqlite": 30
+      },
+      "parity": {
+        "legacyMatches": 1553,
+        "sqliteMatches": 1553,
+        "onlyLegacy": 0,
+        "onlySqlite": 0,
+        "onlyLegacySample": [],
+        "onlySqliteSample": []
+      }
+    },
+    {
+      "key": "set",
+      "label": "Set filter + number sort",
+      "qs": "set=base1&sort=number",
+      "legacy": {
+        "n": 100,
+        "min": 96.73,
+        "median": 102.45,
+        "mean": 102.51,
+        "p95": 107.72,
+        "p99": 110.54,
+        "max": 111.43
+      },
+      "sqlite": {
+        "n": 100,
+        "min": 1.12,
+        "median": 1.16,
+        "mean": 1.22,
+        "p95": 1.44,
+        "p99": 1.61,
+        "max": 4.29
+      },
+      "speedupMedian": 88.3,
+      "reductionMedianPct": 98.9,
+      "reductionP95Pct": 98.7,
+      "firstPageIdentical": true,
+      "firstPageCount": {
+        "legacy": 30,
+        "sqlite": 30
+      },
+      "parity": {
+        "legacyMatches": 102,
+        "sqliteMatches": 102,
+        "onlyLegacy": 0,
+        "onlySqlite": 0,
+        "onlyLegacySample": [],
+        "onlySqliteSample": []
+      }
+    },
+    {
+      "key": "rarity",
+      "label": "Rarity filter + set sort",
+      "qs": "rarity=Rare%20Holo&sort=set",
+      "legacy": {
+        "n": 100,
+        "min": 95.42,
+        "median": 115.72,
+        "mean": 120.63,
+        "p95": 157.34,
+        "p99": 175.64,
+        "max": 236.99
+      },
+      "sqlite": {
+        "n": 100,
+        "min": 0.36,
+        "median": 0.46,
+        "mean": 0.51,
+        "p95": 0.81,
+        "p99": 1.41,
+        "max": 1.44
+      },
+      "speedupMedian": 251.6,
+      "reductionMedianPct": 99.6,
+      "reductionP95Pct": 99.5,
+      "firstPageIdentical": true,
+      "firstPageCount": {
+        "legacy": 30,
+        "sqlite": 30
+      },
+      "parity": {
+        "legacyMatches": 1617,
+        "sqliteMatches": 1617,
+        "onlyLegacy": 0,
+        "onlySqlite": 0,
+        "onlyLegacySample": [],
+        "onlySqliteSample": []
+      }
+    },
+    {
+      "key": "combo",
+      "label": "Text + type + set sort",
+      "qs": "q=pikachu&type=Lightning&sort=set",
+      "legacy": {
+        "n": 100,
+        "min": 120.58,
+        "median": 206.84,
+        "mean": 213.27,
+        "p95": 273.65,
+        "p99": 281.26,
+        "max": 295.07
+      },
+      "sqlite": {
+        "n": 100,
+        "min": 0.43,
+        "median": 0.49,
+        "mean": 0.6,
+        "p95": 1.33,
+        "p99": 1.75,
+        "max": 1.9
+      },
+      "speedupMedian": 422.1,
+      "reductionMedianPct": 99.8,
+      "reductionP95Pct": 99.5,
+      "firstPageIdentical": true,
+      "firstPageCount": {
+        "legacy": 30,
+        "sqlite": 30
+      },
+      "parity": {
+        "legacyMatches": 173,
+        "sqliteMatches": 173,
+        "onlyLegacy": 0,
+        "onlySqlite": 0,
+        "onlyLegacySample": [],
+        "onlySqliteSample": []
+      }
+    },
+    {
+      "key": "deep",
+      "label": "Deep page (Water, page 20)",
+      "qs": "type=Water&page=20",
+      "legacy": {
+        "n": 100,
+        "min": 96.46,
+        "median": 103.55,
+        "mean": 133.35,
+        "p95": 256.79,
+        "p99": 275.4,
+        "max": 292.7
+      },
+      "sqlite": {
+        "n": 100,
+        "min": 2.17,
+        "median": 2.3,
+        "mean": 2.31,
+        "p95": 2.44,
+        "p99": 2.62,
+        "max": 2.64
+      },
+      "speedupMedian": 45,
+      "reductionMedianPct": 97.8,
+      "reductionP95Pct": 99,
+      "firstPageIdentical": true,
+      "firstPageCount": {
+        "legacy": 30,
+        "sqlite": 30
+      },
+      "parity": {
+        "legacyMatches": 2402,
+        "sqliteMatches": 2402,
+        "onlyLegacy": 0,
+        "onlySqlite": 0,
+        "onlyLegacySample": [],
+        "onlySqliteSample": []
+      }
+    }
+  ]
+}

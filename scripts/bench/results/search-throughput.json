@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-12T05:13:36.410Z",
+  "base": "http://localhost:3123",
+  "concurrency": 10,
+  "seconds": 10,
+  "legacy": {
+    "route": "/api/search-cards-legacy",
+    "requests": 80,
+    "errors": 0,
+    "rps": 6.5,
+    "p50": 1108.6,
+    "p95": 2442.6,
+    "p99": 2511.5
+  },
+  "sqlite": {
+    "route": "/api/search-cards",
+    "requests": 2338,
+    "errors": 0,
+    "rps": 232.9,
+    "p50": 42.5,
+    "p95": 49.8,
+    "p99": 56.6
+  }
+}
