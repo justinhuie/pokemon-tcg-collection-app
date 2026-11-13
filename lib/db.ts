@@ -22,7 +22,9 @@ export function getDb(): DB {
   fs.mkdirSync(path.join(process.cwd(), "data"), { recursive: true });
 
   const db = new Database(DB_PATH);
-  db.pragma("journal_mode = WAL");
+  // Keep the default rollback journal. WAL mode is persisted in the file
+  // header, and a WAL database can't be opened on a read-only filesystem
+  // (e.g. Vercel serverless functions), which breaks the committed app.db.
   db.pragma("foreign_keys = ON");
   return db;
 }

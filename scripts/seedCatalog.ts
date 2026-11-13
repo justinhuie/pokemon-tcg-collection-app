@@ -194,6 +194,8 @@ async function main() {
   rebuildCardsFts(db);
   console.log("Rebuilding card_types…");
   rebuildCardTypes(db);
+  // Ship the file in rollback-journal mode so it opens on read-only hosts.
+  db.pragma("journal_mode = DELETE");
   db.close();
 
   console.log("✅ Catalog seeded and FTS ready.");
